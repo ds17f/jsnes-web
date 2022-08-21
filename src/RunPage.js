@@ -7,6 +7,7 @@ import ControlsModal from "./ControlsModal";
 import Emulator from "./Emulator";
 import RomLibrary from "./RomLibrary";
 import { loadBinary } from "./utils";
+import { defaultPlayer1Controller, NesController } from "./NesController";
 
 import "./RunPage.css";
 
@@ -114,6 +115,7 @@ class RunPage extends Component {
                 }
               />
             )}
+            <NesController {...defaultPlayer1Controller} />
           </div>
         )}
       </div>
