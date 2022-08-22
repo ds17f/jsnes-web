@@ -65,10 +65,11 @@ export const NesController = ({
   a,
   b,
   select,
-  start
+  start,
+  innerRef
 }) => {
   return (
-    <div className="NesController">
+    <div className="NesController" ref={innerRef}>
       <svg
         version="1.1"
         id="svg2"
