@@ -115,9 +115,9 @@ class RunPage extends Component {
                 }
               />
             )}
-            <NesController {...defaultPlayer1Controller} />
           </div>
         )}
+        <NesController {...defaultPlayer1Controller} innerRef={el => { this.nesController = el; }} />
       </div>
     );
   }
@@ -195,8 +195,12 @@ class RunPage extends Component {
 
   layout = () => {
     let navbarHeight = parseFloat(window.getComputedStyle(this.navbar).height);
+    console.log(this.nesController.style.display)
+    let controllerHeight = window.innerWidth > 768
+      ? 0
+      :  parseFloat(window.getComputedStyle(this.nesController).height) + 100;
     this.screenContainer.style.height = `${window.innerHeight -
-      navbarHeight}px`;
+      navbarHeight - controllerHeight}px`;
     if (this.emulator) {
       this.emulator.fitInParent();
     }
