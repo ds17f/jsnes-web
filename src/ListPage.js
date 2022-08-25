@@ -46,7 +46,7 @@ class ListPage extends Component {
                       className="list-group-item"
                     >
                       {config.ROMS[key]["name"]}
-                      <span className="float-right">&rsaquo;</span>
+                      <span className="float-end">&rsaquo;</span>
                     </Link>
                   ))}
               </ListGroup>
@@ -80,7 +80,7 @@ class ListPage extends Component {
                           >
                             &times;
                           </span>
-                          <span className="float-right">&rsaquo;</span>
+                          <span className="float-end">&rsaquo;</span>
                         </Link>
                       ))}
                   </ListGroup>
