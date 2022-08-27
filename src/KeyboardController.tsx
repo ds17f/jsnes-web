@@ -9,7 +9,7 @@ type KeyMapTuple = [ControllerKey, ButtonKey, string];
 /**
  * Maps an ASCII code to a [controller, button, description]
  */
-interface KeyboardMapping {
+export interface KeyboardMapping {
   [key: number]: KeyMapTuple;
 }
 

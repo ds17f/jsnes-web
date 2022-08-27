@@ -4,15 +4,17 @@ import {
   NesGamepadButton,
   Gamepads
 } from "./GamepadController";
+import {KeyboardMapping} from "./KeyboardController";
+import {ButtonKey, ControllerKey} from "jsnes";
 
 interface ControlMapperRowProps {
   buttonName: string;
-  keys: any;
-  button: number; // Controller buttons are numbers: https://github.com/bfirsh/jsnes/blob/667d169fa046460317885fca6fcb1cac89e0a4fe/src/controller.js#L8-L15
+  keys: KeyboardMapping;
+  button: ButtonKey;
   prevButton: number;
   currentPromptButton: number;
   gamepadConfig: Gamepads;
-  handleClick: any;
+  handleClick: (controllerKey: ControllerKey, buttonKey: ButtonKey) => void;
 }
 
 interface ControlMapperRowState {
@@ -152,7 +154,7 @@ class ControlMapperRow extends Component<
     const newState: ControlMapperRowState = {};
 
     if (waitingForKey) {
-      this.props.handleClick([waitingForKeyPlayer, this.props.button]);
+      this.props.handleClick(waitingForKeyPlayer as ControllerKey, this.props.button);
     }
     // Prevent setState being called repeatedly
     if (
@@ -180,8 +182,8 @@ class ControlMapperRow extends Component<
     }
   }
 
-  handleClick(player: number) {
-    this.props.handleClick([player, this.props.button]);
+  handleClick(player: ControllerKey) {
+    this.props.handleClick(player, this.props.button);
     this.setState({
       waitingForKey: player
     });
