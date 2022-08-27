@@ -1,7 +1,31 @@
 import React, { Component } from "react";
+import {
+  GamepadButtonConfig,
+  NesGamepadButton,
+  Gamepads
+} from "./GamepadController";
 
-class ControlMapperRow extends Component {
-  constructor(props) {
+interface ControlMapperRowProps {
+  buttonName: string;
+  keys: any;
+  button: number; // Controller buttons are numbers: https://github.com/bfirsh/jsnes/blob/667d169fa046460317885fca6fcb1cac89e0a4fe/src/controller.js#L8-L15
+  prevButton: number;
+  currentPromptButton: number;
+  gamepadConfig: Gamepads;
+  handleClick: any;
+}
+
+interface ControlMapperRowState {
+  playerOneButton?: string;
+  playerTwoButton?: string;
+  waitingForKey?: number;
+}
+
+class ControlMapperRow extends Component<
+  ControlMapperRowProps,
+  ControlMapperRowState
+> {
+  constructor(props: ControlMapperRowProps) {
     super(props);
     this.state = {
       playerOneButton: "",
@@ -12,10 +36,10 @@ class ControlMapperRow extends Component {
   }
 
   componentDidMount() {
-    var keys = this.props.keys;
-    var button = this.props.button;
-    var playerButtons = [];
-    for (var key in keys) {
+    const keys = this.props.keys;
+    const button = this.props.button;
+    const playerButtons = [];
+    for (const key in keys) {
       if (keys[key][0] === 1 && keys[key][1] === button) {
         playerButtons[0] = keys[key][2];
         console.log(playerButtons[0]);
@@ -29,14 +53,17 @@ class ControlMapperRow extends Component {
     });
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    var keys = this.props.keys;
-    var button = this.props.button;
-    var playerButtons = [];
-    var gamepadButton;
-    var newButton;
+  componentDidUpdate(
+    prevProps: Readonly<ControlMapperRowProps>,
+    prevState: Readonly<ControlMapperRowState>
+  ) {
+    const keys = this.props.keys;
+    const button = this.props.button;
+    const playerButtons = [];
+    let gamepadButton;
+    let newButton;
 
-    for (var key in keys) {
+    for (const key in keys) {
       if (keys[key][0] === 1 && keys[key][1] === button) {
         playerButtons[0] = keys[key][2];
         console.log(playerButtons[0]);
@@ -45,11 +72,17 @@ class ControlMapperRow extends Component {
       }
     }
 
-    var searchButton = (gamepadConfig, buttonId) => {
+    const searchButton = (
+      gamepadConfig: GamepadButtonConfig,
+      buttonId: number
+    ) => {
       return gamepadConfig.buttons.filter(b => b.buttonId === buttonId)[0];
     };
 
-    var searchNewButton = (prevGamepadConfig, gamepadConfig) => {
+    const searchNewButton = (
+      prevGamepadConfig: GamepadButtonConfig,
+      gamepadConfig: GamepadButtonConfig
+    ) => {
       return gamepadConfig.buttons.filter(b => {
         return (
           !prevGamepadConfig ||
@@ -58,10 +91,12 @@ class ControlMapperRow extends Component {
       })[0];
     };
 
-    var waitingForKey = 0;
-    var waitingForKeyPlayer = 0;
+    let waitingForKey = 0;
+    let waitingForKeyPlayer = 0;
 
-    var gamepadButtonName = gamepadButton => {
+    const gamepadButtonName = (
+      gamepadButton: NesGamepadButton
+    ): string | undefined => {
       if (gamepadButton.type === "button") return "Btn-" + gamepadButton.code;
       if (gamepadButton.type === "axis")
         return "Axis-" + gamepadButton.code + " " + gamepadButton.value;
@@ -114,7 +149,7 @@ class ControlMapperRow extends Component {
       }
     }
 
-    var newState = {};
+    const newState: ControlMapperRowState = {};
 
     if (waitingForKey) {
       this.props.handleClick([waitingForKeyPlayer, this.props.button]);
@@ -145,7 +180,7 @@ class ControlMapperRow extends Component {
     }
   }
 
-  handleClick(player) {
+  handleClick(player: number) {
     this.props.handleClick([player, this.props.button]);
     this.setState({
       waitingForKey: player

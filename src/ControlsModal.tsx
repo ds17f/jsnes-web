@@ -13,7 +13,16 @@ import ControlMapperRow from "./ControlMapperRow";
 const GAMEPAD_ICON = "../img/nes_controller.png";
 const KEYBOARD_ICON = "../img/keyboard.png";
 
-class ControlsModal extends Component {
+interface ControlsModalProps {}
+interface ControlsModalState {
+  currentPromptButton: number;
+  gamepadConfig: any;
+  keys: any;
+  button?: number;
+  modified: boolean;
+}
+
+class ControlsModal extends Component<ControlsModalProps, ControlsModalState> {
   constructor(props) {
     super(props);
     this.state = {
@@ -22,6 +31,7 @@ class ControlsModal extends Component {
       button: undefined,
       modified: false
     };
+    console.log(this.state.gamepadConfig)
     this.handleKeyDown = this.handleKeyDown.bind(this);
     this.handleGamepadButtonDown = this.handleGamepadButtonDown.bind(this);
     this.listenForKey = this.listenForKey.bind(this);
@@ -48,16 +58,23 @@ class ControlsModal extends Component {
     this.removeKeyListener();
   }
 
+  /**
+   * Listens to a keypress to update the key that's bound to the nes button
+   * @param button
+   */
   listenForKey(button) {
     var currentPromptButton = button[1];
 
+    // Clear the bound key
     this.removeKeyListener();
     this.setState({ button, currentPromptButton });
+    // Load a new key
     this.props.promptButton(this.handleGamepadButtonDown);
     document.addEventListener("keydown", this.handleKeyDown);
   }
 
   handleGamepadButtonDown(buttonInfo) {
+    // Clear the key that we are resetting
     this.removeKeyListener();
 
     var button = this.state.button;
@@ -145,6 +162,11 @@ class ControlsModal extends Component {
     });
   }
 
+  /**
+   * Remove the listener for the key that was pressed
+   * so that we don't send it to the emulator and
+   * we can change it
+   */
   removeKeyListener() {
     this.props.promptButton(null);
     document.removeEventListener("keydown", this.handleKeyDown);

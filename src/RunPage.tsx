@@ -6,7 +6,7 @@ import config from "./config";
 import ControlsModal from "./ControlsModal";
 import Emulator from "./Emulator";
 import RomLibrary from "./RomLibrary";
-import { loadBinary } from "./utils";
+import { loadBinary } from "./utils/utils";
 
 import "./RunPage.css";
 

@@ -30,3 +30,4 @@ export function loadBinary(path, callback, handleProgress) {
   req.send();
   return req;
 }
+

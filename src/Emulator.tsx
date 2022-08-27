@@ -16,6 +16,8 @@ import Speakers from "./Speakers";
  * (binds to window, keyboard, speakers, etc).
  */
 class Emulator extends Component {
+  public gamepadController: GamepadController;
+
   render() {
     return (
       <Screen

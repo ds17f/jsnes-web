@@ -1,7 +1,19 @@
-import { Controller } from "jsnes";
+import {ButtonKey, Controller, ControllerKey} from "jsnes";
 
-// Mapping keyboard code to [controller, button]
-const KEYS = {
+/**
+ * Represents a single entry for a key on the keyboard
+ * [Controller#, Button, Description]
+ */
+type KeyMapTuple = [ControllerKey, ButtonKey, string];
+
+/**
+ * Maps an ASCII code to a [controller, button, description]
+ */
+interface KeyboardMapping {
+  [key: number]: KeyMapTuple;
+}
+
+const DEFAULT_KEYBOARD_MAPPING: KeyboardMapping = {
   88: [1, Controller.BUTTON_A, "X"], // X
   89: [1, Controller.BUTTON_B, "Y"], // Y (Central European keyboard)
   90: [1, Controller.BUTTON_B, "Z"], // Z
@@ -20,28 +32,43 @@ const KEYS = {
   100: [2, Controller.BUTTON_LEFT, "Num-4"], // Num-4
   102: [2, Controller.BUTTON_RIGHT, "Num-6"] // Num-6
 };
+interface KeyboardControllerOptions {
+  onButtonDown: (controller: ControllerKey, button: ButtonKey) => {};
+  onButtonUp: (controller: ControllerKey, button: ButtonKey) => {};
+}
 
 export default class KeyboardController {
-  constructor(options) {
+  private readonly onButtonDown: (controller: ControllerKey, button: ButtonKey) => {};
+  private readonly onButtonUp: (controller: ControllerKey, button: ButtonKey) => {};
+  private keys: any;
+  constructor(options: KeyboardControllerOptions) {
     this.onButtonDown = options.onButtonDown;
     this.onButtonUp = options.onButtonUp;
   }
 
+  /**
+   * Loads serialized keymap from localStorage
+   * if not found, uses the default
+   */
   loadKeys = () => {
-    var keys;
+    let loadedKeymapping: KeyboardMapping | undefined;
     try {
-      keys = localStorage.getItem("keys");
-      if (keys) {
-        keys = JSON.parse(keys);
+      const storedKeys = localStorage.getItem("keys");
+      if (storedKeys) {
+        loadedKeymapping = JSON.parse(storedKeys) as KeyboardMapping;
       }
     } catch (e) {
       console.log("Failed to get keys from localStorage.", e);
     }
 
-    this.keys = keys || KEYS;
+    this.keys = loadedKeymapping || DEFAULT_KEYBOARD_MAPPING;
   };
 
-  setKeys = newKeys => {
+  /**
+   * Stores a KeyboardMapping to local storage
+   * @param newKeys
+   */
+  setKeys = (newKeys: KeyboardMapping) => {
     try {
       localStorage.setItem("keys", JSON.stringify(newKeys));
       this.keys = newKeys;
@@ -50,23 +77,37 @@ export default class KeyboardController {
     }
   };
 
-  handleKeyDown = e => {
-    var key = this.keys[e.keyCode];
+  /**
+   * Handle a key pressed down on the keyboard
+   * @param e
+   */
+  handleKeyDown = (e: KeyboardEvent) => {
+    const key: KeyMapTuple = this.keys[e.keyCode]; // TODO: Consider using `code` instead as it is better supported but is a string
     if (key) {
-      this.onButtonDown(key[0], key[1]);
+      const [controller, button] = key;
+      this.onButtonDown(controller, button);
       e.preventDefault();
     }
   };
 
-  handleKeyUp = e => {
-    var key = this.keys[e.keyCode];
+  /**
+   * Handle a key up on the keyboard
+   * @param e
+   */
+  handleKeyUp = (e: KeyboardEvent) => {
+    const key: KeyMapTuple = this.keys[e.keyCode]; // TODO: Consider using `code` instead as it is better supported but is a string
     if (key) {
-      this.onButtonUp(key[0], key[1]);
+      const [controller, button] = key;
+      this.onButtonUp(controller, button);
       e.preventDefault();
     }
   };
 
-  handleKeyPress = e => {
+  /**
+   * Handle any keypress
+   * @param e
+   */
+  handleKeyPress = (e: KeyboardEvent) => {
     e.preventDefault();
   };
 }
