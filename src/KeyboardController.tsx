@@ -40,7 +40,7 @@ interface KeyboardControllerOptions {
 export default class KeyboardController {
   private readonly onButtonDown: (controller: ControllerKey, button: ButtonKey) => {};
   private readonly onButtonUp: (controller: ControllerKey, button: ButtonKey) => {};
-  private keys: any;
+  private keys: KeyboardMapping | undefined;
   constructor(options: KeyboardControllerOptions) {
     this.onButtonDown = options.onButtonDown;
     this.onButtonUp = options.onButtonUp;
@@ -82,7 +82,7 @@ export default class KeyboardController {
    * @param e
    */
   handleKeyDown = (e: KeyboardEvent) => {
-    const key: KeyMapTuple = this.keys[e.keyCode]; // TODO: Consider using `code` instead as it is better supported but is a string
+    const key: KeyMapTuple | undefined = this.keys ? this.keys[e.keyCode] : undefined; // TODO: Consider using `code` instead as it is better supported but is a string
     if (key) {
       const [controller, button] = key;
       this.onButtonDown(controller, button);
@@ -95,7 +95,7 @@ export default class KeyboardController {
    * @param e
    */
   handleKeyUp = (e: KeyboardEvent) => {
-    const key: KeyMapTuple = this.keys[e.keyCode]; // TODO: Consider using `code` instead as it is better supported but is a string
+    const key: KeyMapTuple | undefined = this.keys ? this.keys[e.keyCode] : undefined; // TODO: Consider using `code` instead as it is better supported but is a string
     if (key) {
       const [controller, button] = key;
       this.onButtonUp(controller, button);
