@@ -1,6 +1,5 @@
 import { ButtonKey, ControllerKey } from "jsnes";
 import { getLogger } from "./utils/logging";
-import { Button } from "reactstrap";
 
 const LOGGER = getLogger("GamepadController");
 
@@ -11,7 +10,7 @@ type ButtonTypes = "axis" | "button";
  */
 export interface Gamepads {
   /** An array of names of the gamepads, can be used to index the configs*/
-  playerGamepadId: string[];
+  playerGamepadId: Array<string | null>;
   /** Keys in the configs map to the entries in the playerGamepadId array */
   configs: GamepadConfig;
 }
@@ -41,7 +40,7 @@ export interface NesGamepadButton {
   value: number;
 }
 
-interface ButtonCallbackProps {
+export interface ButtonCallbackProps {
   gamepadId: string;
   type: ButtonTypes;
   code: number;

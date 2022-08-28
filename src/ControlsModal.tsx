@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, MouseEventHandler } from "react";
 import {
   Button,
   Modal,
@@ -7,23 +7,45 @@ import {
   ModalFooter,
   Table
 } from "reactstrap";
-import { Controller } from "jsnes";
+import { ButtonKey, Controller, ControllerKey } from "jsnes";
 import ControlMapperRow from "./ControlMapperRow";
+import {
+  ButtonCallbackProps,
+  GamepadConfig,
+  Gamepads,
+  NesGamepadButton
+} from "./GamepadController";
+import { KeyboardMapping } from "./KeyboardController";
+import { getLogger } from "./utils/logging";
+
+const LOGGER = getLogger("ControlsModal");
 
 const GAMEPAD_ICON = "../img/nes_controller.png";
 const KEYBOARD_ICON = "../img/keyboard.png";
 
-interface ControlsModalProps {}
+interface ControlsModalProps {
+  gamepadConfig: Gamepads;
+  keys: KeyboardMapping;
+  setKeys: (keys: KeyboardMapping) => void;
+  setGamepadConfig: (gamepadConfig: Gamepads) => void;
+  promptButton: (
+    handleGamepadButtonDown: ((callback: ButtonCallbackProps) => void) | null
+  ) => void;
+  isOpen?: boolean;
+  toggle?: MouseEventHandler<HTMLButtonElement>;
+}
 interface ControlsModalState {
-  currentPromptButton: number;
-  gamepadConfig: any;
-  keys: any;
-  button?: number;
+  gamepadConfig: Gamepads;
+  keys: KeyboardMapping;
   modified: boolean;
+  currentPromptButton?: number;
+  controllerIcon?: string[];
+  controllerIconAlt?: string[];
+  button?: [ControllerKey, ButtonKey];
 }
 
 class ControlsModal extends Component<ControlsModalProps, ControlsModalState> {
-  constructor(props) {
+  constructor(props: ControlsModalProps) {
     super(props);
     this.state = {
       gamepadConfig: props.gamepadConfig,
@@ -31,23 +53,29 @@ class ControlsModal extends Component<ControlsModalProps, ControlsModalState> {
       button: undefined,
       modified: false
     };
-    console.log(this.state.gamepadConfig)
     this.handleKeyDown = this.handleKeyDown.bind(this);
     this.handleGamepadButtonDown = this.handleGamepadButtonDown.bind(this);
     this.listenForKey = this.listenForKey.bind(this);
 
-    this.state.gamepadConfig = this.state.gamepadConfig || {};
-    this.state.gamepadConfig.playerGamepadId = this.state.gamepadConfig
+    LOGGER.info("initialize gamepad with defaults");
+    const gamepadConfig = this.state.gamepadConfig || {};
+    gamepadConfig.playerGamepadId = this.state.gamepadConfig
       .playerGamepadId || [null, null];
-    this.state.gamepadConfig.configs = this.state.gamepadConfig.configs || {};
-
-    this.state.controllerIcon = this.state.gamepadConfig.playerGamepadId.map(
+    gamepadConfig.configs = this.state.gamepadConfig.configs || {};
+    LOGGER.info("initialize icons");
+    const controllerIcon = this.state.gamepadConfig.playerGamepadId.map(
       gamepadId => (gamepadId ? GAMEPAD_ICON : KEYBOARD_ICON)
     );
-    this.state.controllerIconAlt = this.state.gamepadConfig.playerGamepadId.map(
+    const controllerIconAlt = this.state.gamepadConfig.playerGamepadId.map(
       gamepadId => (gamepadId ? "gamepad" : "keyboard")
     );
-    this.state.currentPromptButton = -1;
+    LOGGER.info("set initialized state");
+    this.setState({
+      gamepadConfig,
+      controllerIcon,
+      controllerIconAlt,
+      currentPromptButton: -1
+    });
   }
 
   componentWillUnmount() {
@@ -60,46 +88,48 @@ class ControlsModal extends Component<ControlsModalProps, ControlsModalState> {
 
   /**
    * Listens to a keypress to update the key that's bound to the nes button
-   * @param button
+   * @param currentPromptController
+   * @param currentPromptButton
    */
-  listenForKey(button) {
-    var currentPromptButton = button[1];
-
+  listenForKey(
+    currentPromptController: ControllerKey,
+    currentPromptButton: ButtonKey
+  ) {
     // Clear the bound key
     this.removeKeyListener();
-    this.setState({ button, currentPromptButton });
+    this.setState({
+      button: [currentPromptController, currentPromptButton],
+      currentPromptButton
+    });
     // Load a new key
     this.props.promptButton(this.handleGamepadButtonDown);
     document.addEventListener("keydown", this.handleKeyDown);
   }
 
-  handleGamepadButtonDown(buttonInfo) {
+  handleGamepadButtonDown(buttonInfo: ButtonCallbackProps) {
     // Clear the key that we are resetting
     this.removeKeyListener();
 
-    var button = this.state.button;
-
-    const playerId = button[0];
-    const buttonId = button[1];
+    const [playerId, buttonId] = this.state.button!;
 
     const gamepadId = buttonInfo.gamepadId;
     const gamepadConfig = this.state.gamepadConfig;
 
     // link player to gamepad
     const playerGamepadId = gamepadConfig.playerGamepadId.slice(0);
-    const newConfig = {};
+    const newConfig: GamepadConfig = {};
 
     playerGamepadId[playerId - 1] = gamepadId;
 
-    const rejectButtonId = b => {
+    const rejectButtonId = (b: NesGamepadButton) => {
       return b.buttonId !== buttonId;
     };
 
-    const newButton = {
+    const newButton: NesGamepadButton = {
       code: buttonInfo.code,
       type: buttonInfo.type,
-      buttonId: buttonId,
-      value: buttonInfo.value
+      buttonId: buttonId as ButtonKey,
+      value: buttonInfo.value!
     };
     newConfig[gamepadId] = {
       buttons: (gamepadConfig.configs[gamepadId] || { buttons: [] }).buttons
@@ -122,14 +152,15 @@ class ControlsModal extends Component<ControlsModalProps, ControlsModalState> {
     });
   }
 
-  handleKeyDown(event) {
+  handleKeyDown(event: KeyboardEvent) {
     this.removeKeyListener();
 
-    var button = this.state.button;
-    var keys = this.state.keys;
-    var newKeys = {};
-    for (var key in keys) {
-      if (keys[key][0] !== button[0] || keys[key][1] !== button[1]) {
+    const button: [ControllerKey, ButtonKey] = this.state.button!;
+    const keys = this.state.keys;
+    const newKeys: KeyboardMapping = {};
+    for (const key in keys) {
+      const [controllerKey, buttonKey] = keys[key];
+      if (controllerKey !== button[0] || buttonKey !== button[1]) {
         newKeys[key] = keys[key];
       }
     }
@@ -138,13 +169,13 @@ class ControlsModal extends Component<ControlsModalProps, ControlsModalState> {
     const playerId = button[0];
     playerGamepadId[playerId - 1] = null;
 
+    const [controllerKey, buttonKey] = button;
+    const keyDescription =
+      event.key.length > 1 ? event.key : String(event.key).toUpperCase();
     this.setState({
       keys: {
         ...newKeys,
-        [event.keyCode]: [
-          ...button.slice(0, 2),
-          event.key.length > 1 ? event.key : String(event.key).toUpperCase()
-        ]
+        [event.keyCode]: [controllerKey, buttonKey, keyDescription]
       },
       button: undefined,
       gamepadConfig: {
@@ -189,16 +220,16 @@ class ControlsModal extends Component<ControlsModalProps, ControlsModalState> {
                   Player 1
                   <img
                     className="controller-icon"
-                    src={this.state.controllerIcon[0]}
-                    alt={this.state.controllerIconAlt[0]}
+                    src={this.state.controllerIcon![0]}
+                    alt={this.state.controllerIconAlt![0]}
                   />
                 </th>
                 <th>
                   Player 2
                   <img
                     className="controller-icon"
-                    src={this.state.controllerIcon[1]}
-                    alt={this.state.controllerIconAlt[1]}
+                    src={this.state.controllerIcon![1]}
+                    alt={this.state.controllerIconAlt![1]}
                   />
                 </th>
               </tr>

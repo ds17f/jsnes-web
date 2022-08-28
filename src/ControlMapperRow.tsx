@@ -12,7 +12,7 @@ interface ControlMapperRowProps {
   keys: KeyboardMapping;
   button: ButtonKey;
   prevButton: number;
-  currentPromptButton: number;
+  currentPromptButton?: number;
   gamepadConfig: Gamepads;
   handleClick: (controllerKey: ControllerKey, buttonKey: ButtonKey) => void;
 }
