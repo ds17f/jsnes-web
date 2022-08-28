@@ -1,6 +1,12 @@
-const pFileReader = function(file) {
+import { getLogger } from "./utils/logging";
+import { Hash } from "crypto";
+import { Runtime } from "inspector";
+import { Key } from "react";
+const LOGGER = getLogger("RomLibrary");
+
+const pFileReader = function(file: File): Promise<ProgressEvent<FileReader>> {
   return new Promise((resolve, reject) => {
-    var reader = new FileReader();
+    const reader = new FileReader();
     reader.onload = resolve;
     reader.readAsBinaryString(file);
   });
@@ -23,15 +29,22 @@ const hashFile = function(byteString) {
   return crypto.subtle.digest("SHA-1", ab).then(asHex);
 };
 
+//[{"name":"starfighter.nes","hash":"24631fec984c4e07bed44b77e35e40a6bdf29a90","added":1661704448241}]'
+export interface RomInfo {
+  name: string;
+  hash: Key;
+  added: number;
+}
+
 const RomLibrary = {
-  getRomInfoByHash: function(hash) {
+  getRomInfoByHash: function(hash: Key) {
     return this.load().find(rom => rom.hash === hash);
   },
-  save: function(file) {
+  save: function(file: File): Promise<RomInfo> {
     return pFileReader(file)
       .then(function(readFile) {
-        const byteString = readFile.target.result;
-        return hashFile(byteString).then(hash => {
+        const byteString = readFile.target?.result;
+        return hashFile(byteString).then((hash: string) => {
           return { hash, byteString };
         });
       })
@@ -39,7 +52,7 @@ const RomLibrary = {
         const savedRomInfo = localStorage.getItem("savedRomInfo");
         const existingLibrary = savedRomInfo ? JSON.parse(savedRomInfo) : [];
 
-        const rom = {
+        const rom: RomInfo = {
           name: file.name,
           hash: hash,
           added: Date.now()
@@ -48,15 +61,17 @@ const RomLibrary = {
         const newRomInfo = JSON.stringify(existingLibrary.concat([rom]));
 
         localStorage.setItem("savedRomInfo", newRomInfo);
-        localStorage.setItem("blob-" + hash, byteString);
+        localStorage.setItem("blob-" + hash, byteString as string);
 
         return rom;
       });
   },
-  load: function() {
+  load: function(): RomInfo[] {
     const localData = localStorage.getItem("savedRomInfo");
     if (!localData) return [];
+    LOGGER.warn(localData);
     const savedRomInfo = JSON.parse(localStorage.getItem("savedRomInfo"));
+
     return savedRomInfo || [];
   },
   delete: function(hash) {

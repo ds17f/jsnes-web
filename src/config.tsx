@@ -1,6 +1,21 @@
-import React from "react";
+import React, { ReactElement } from "react";
 
-const config = {
+interface JsNesWebConfig {
+  ROMS: {
+    [key: string]: RomConfig;
+  };
+  GOOGLE_ANALYTICS_CODE: any;
+  SENTRY_URI: any;
+  BASENAME: () => string;
+}
+
+interface RomConfig {
+  name: string;
+  description: ReactElement;
+  url: string;
+}
+
+const config: JsNesWebConfig = {
   ROMS: {
     owlia: {
       name: "The Legends of Owlia",

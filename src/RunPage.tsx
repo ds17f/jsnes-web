@@ -10,6 +10,8 @@ import { loadBinary } from "./utils/utils";
 
 import "./RunPage.css";
 
+export const LOCAL_ROM_FLAG = "local-"
+
 function withParams(Component) {
   return props => (
     <Component {...props} params={useParams()} location={useLocation()} />
@@ -143,7 +145,7 @@ class RunPage extends Component {
     console.log("load");
     if (this.props.params.slug) {
       const slug = this.props.params.slug;
-      const isLocalROM = /^local-/.test(slug);
+      const isLocalROM = new RegExp(`^${LOCAL_ROM_FLAG}`).test(slug);
       const romHash = slug.split("-")[1];
       const romInfo = isLocalROM
         ? RomLibrary.getRomInfoByHash(romHash)

@@ -1,16 +1,39 @@
-import React, { Component } from "react";
+import React, {
+  Component,
+  ComponentProps,
+  ComponentType,
+  DragEventHandler,
+  Key
+} from "react";
 import "./ListPage.css";
 import { ListGroup } from "reactstrap";
-import { Link } from "react-router-dom";
+import { Link, NavigateFunction, useNavigate } from "react-router-dom";
 import config from "./config";
+import { getLogger } from "./utils/logging";
 
-import RomLibrary from "./RomLibrary";
+import RomLibrary, { RomInfo } from "./RomLibrary";
+import { LOCAL_ROM_FLAG } from "./RunPage";
+
+const LOGGER = getLogger("ListPage");
 
 const rootRunPath = "/run";
-const rootRunPathLocal = "/local-";
+const rootRunPathLocal = `${rootRunPath}/${LOCAL_ROM_FLAG}`;
 
-class ListPage extends Component {
-  constructor(props) {
+interface ListPageProps {
+  navigate: NavigateFunction;
+}
+interface ListPageState {
+  romLibrary: RomInfo[];
+}
+
+function withNavigate(Component: ComponentType<any>) {
+  return (props: ComponentProps<any>) => (
+    <Component {...props} navigate={useNavigate()} />
+  );
+}
+
+class ListPage extends Component<ListPageProps, ListPageState> {
+  constructor(props: ListPageProps) {
     super(props);
     this.state = {
       romLibrary: RomLibrary.load()
@@ -62,7 +85,11 @@ class ListPage extends Component {
 
                   <ListGroup className="mb-4">
                     {this.state.romLibrary
-                      .sort((a, b) => new Date(b.added) - new Date(a.added))
+                      .sort(
+                        (a, b) =>
+                          new Date(b.added).getTime() -
+                          new Date(a.added).getTime()
+                      )
                       .map(rom => (
                         <Link
                           key={rom.hash}
@@ -93,32 +120,47 @@ class ListPage extends Component {
     );
   }
 
-  deleteRom = hash => {
+  deleteRom = (hash: Key) => {
+    LOGGER.info(`Delete rom: ${hash} from library`)
     RomLibrary.delete(hash);
     this.updateLibrary();
   };
 
   updateLibrary = () => {
+    LOGGER.info("Loading rom library")
     this.setState({ romLibrary: RomLibrary.load() });
   };
 
-  handleDragOver = e => {
+  handleDragOver: DragEventHandler<HTMLDivElement> = e => {
     e.preventDefault();
+    if (!e.dataTransfer) {
+      LOGGER.info("No dataTransfer on drag event, can't handleDrag");
+      return;
+    }
     e.dataTransfer.dropEffect = "copy";
   };
 
-  handleDrop = e => {
+  handleDrop: DragEventHandler<HTMLDivElement> = e => {
     e.preventDefault();
+    if (!e.dataTransfer) {
+      LOGGER.info("No dataTransfer on drag event, can't make handleDrop");
+      return;
+    }
 
     const file = e.dataTransfer.items
       ? e.dataTransfer.items[0].getAsFile()
       : e.dataTransfer.files[0];
 
+    if (!file) {
+      LOGGER.info("No file found, can't save file to Library");
+      return;
+    }
+
     RomLibrary.save(file).then(rom => {
       this.updateLibrary();
-      this.props.history.push({ pathname: +rom.hash });
+      this.props.navigate(rootRunPathLocal + rom.hash);
     });
   };
 }
 
-export default ListPage;
+export default withNavigate(ListPage);
