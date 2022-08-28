@@ -1,10 +1,29 @@
-import React, { Component } from "react";
+import React, { Component, MouseEventHandler } from "react";
 import "./Screen.css";
 
-const SCREEN_WIDTH = 256;
-const SCREEN_HEIGHT = 240;
+import { getLogger } from "./utils/logging";
+const LOGGER = getLogger("Screen");
 
-class Screen extends Component {
+const SCREEN_WIDTH: number = 256;
+const SCREEN_HEIGHT: number = 240;
+
+interface ScreenProps {
+  onGenerateFrame: () => void;
+  onMouseDown: (x: number, y: number) => void;
+  onMouseUp: () => void;
+}
+
+class Screen extends Component<ScreenProps> {
+  private canvas?: HTMLCanvasElement;
+  private canvasContext?: CanvasRenderingContext2D | null;
+  private imageData?: ImageData;
+  /** Canvas buffer to write on next animation frame */
+  private buf?: ArrayBuffer;
+  /** Canvas Buffer in 8 bit */
+  private buf8?: Uint8ClampedArray;
+  /** Canvas Buffer in 32 bit */
+  private buf32?: Uint32Array;
+
   render() {
     return (
       <canvas
@@ -13,7 +32,7 @@ class Screen extends Component {
         height={SCREEN_HEIGHT}
         onMouseDown={this.handleMouseDown}
         onMouseUp={this.props.onMouseUp}
-        ref={canvas => {
+        ref={(canvas: HTMLCanvasElement) => {
           this.canvas = canvas;
         }}
       />
@@ -29,17 +48,25 @@ class Screen extends Component {
   }
 
   initCanvas() {
-    this.context = this.canvas.getContext("2d");
-    this.imageData = this.context.getImageData(
+    LOGGER.info("Initializing Canvas");
+    this.canvasContext = this.canvas?.getContext("2d");
+    this.imageData = this.canvasContext?.getImageData(
       0,
       0,
       SCREEN_WIDTH,
       SCREEN_HEIGHT
     );
+    LOGGER.debug(`canvas: ${this.canvas}`);
+    LOGGER.debug(`imageData: ${this.imageData}`);
+    if (!this.canvasContext || !this.imageData) {
+      LOGGER.info(`Missing canvasContext or imageData`);
+      return;
+    }
 
-    this.context.fillStyle = "black";
+    LOGGER.info("Black out Canvas");
+    this.canvasContext.fillStyle = "black";
     // set alpha to opaque
-    this.context.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    this.canvasContext.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     // buffer to write on next animation frame
     this.buf = new ArrayBuffer(this.imageData.data.length);
@@ -47,58 +74,85 @@ class Screen extends Component {
     this.buf8 = new Uint8ClampedArray(this.buf);
     this.buf32 = new Uint32Array(this.buf);
 
+    LOGGER.info("Initialize alpha");
     // Set alpha
-    for (var i = 0; i < this.buf32.length; ++i) {
+    for (let i = 0; i < this.buf32.length; ++i) {
       this.buf32[i] = 0xff000000;
     }
   }
 
-  setBuffer = buffer => {
-    var i = 0;
-    for (var y = 0; y < SCREEN_HEIGHT; ++y) {
-      for (var x = 0; x < SCREEN_WIDTH; ++x) {
+  /**
+   * Convert the NES BGR (little endian RGB) pixel data to the HTML Canvas's ABGR (RGBA little endian)
+   * @param buffer
+   */
+  setBuffer = (buffer: Uint8ClampedArray) => {
+    let i = 0;
+    LOGGER.trace("Convert pixel from NES BGR to canvas ABGR");
+    for (let y = 0; y < SCREEN_HEIGHT; ++y) {
+      for (let x = 0; x < SCREEN_WIDTH; ++x) {
         i = y * 256 + x;
         // Convert pixel from NES BGR to canvas ABGR
-        this.buf32[i] = 0xff000000 | buffer[i]; // Full alpha
+        LOGGER.trace(`x: ${x}, y: ${y}: ${buffer[i]}`);
+        this.buf32![i] = 0xff000000 | buffer[i]; // Full alpha
       }
     }
   };
 
+  /**
+   * Write the buffer to the canvas as imageData
+   */
   writeBuffer = () => {
-    this.imageData.data.set(this.buf8);
-    this.context.putImageData(this.imageData, 0, 0);
+    LOGGER.trace("Write image buffer to canvas");
+    this.imageData!.data.set(this.buf8!);
+    this.canvasContext!.putImageData(this.imageData!, 0, 0);
   };
 
   fitInParent = () => {
-    let parent = this.canvas.parentNode;
-    // @ts-ignore
+    let parent = this.canvas!.parentElement;
+    if (!parent) {
+      LOGGER.info("Cannot fit in parent: Canvas doesn't have a parent Element");
+      return;
+    }
     let parentWidth = parent.clientWidth;
-    // @ts-ignore
     let parentHeight = parent.clientHeight;
     let parentRatio = parentWidth / parentHeight;
     let desiredRatio = SCREEN_WIDTH / SCREEN_HEIGHT;
+    LOGGER.debug({ parentWidth, parentHeight, parentRatio, desiredRatio });
+
     if (desiredRatio < parentRatio) {
-      this.canvas.style.width = `${Math.round(parentHeight * desiredRatio)}px`;
-      this.canvas.style.height = `${parentHeight}px`;
+      LOGGER.info("Resize width to fit ratio");
+      this.canvas!.style.width = `${Math.round(parentHeight * desiredRatio)}px`;
+      this.canvas!.style.height = `${parentHeight}px`;
     } else {
-      this.canvas.style.width = `${parentWidth}px`;
-      this.canvas.style.height = `${Math.round(parentWidth / desiredRatio)}px`;
+      LOGGER.info("Resize height to fit ratio");
+      this.canvas!.style.width = `${parentWidth}px`;
+      this.canvas!.style.height = `${Math.round(parentWidth / desiredRatio)}px`;
     }
   };
 
   screenshot() {
-    var img = new Image();
-    img.src = this.canvas.toDataURL("image/png");
+    LOGGER.info("Take screenshot");
+    const img = new Image();
+    img.src = this.canvas!.toDataURL("image/png");
     return img;
   }
 
-  handleMouseDown = e => {
-    if (!this.props.onMouseDown) return;
+  handleMouseDown: MouseEventHandler<HTMLCanvasElement> = e => {
+    if (!this.props.onMouseDown) {
+      LOGGER.info("No mouse down event defined");
+      return;
+    }
+
     // Make coordinates unscaled
-    let scale = SCREEN_WIDTH / parseFloat(this.canvas.style.width);
-    let rect = this.canvas.getBoundingClientRect();
+    LOGGER.info("Translate screen click to canvas/emulator location");
+    let scale = SCREEN_WIDTH / parseFloat(this.canvas!.style.width);
+    let rect = this.canvas!.getBoundingClientRect();
     let x = Math.round((e.clientX - rect.left) * scale);
     let y = Math.round((e.clientY - rect.top) * scale);
+    LOGGER.debug(`screenX: ${e.clientX}, screenY: ${e.clientY}`);
+    LOGGER.debug(`canvasX: ${x}, canvasY: ${y}`);
+
+    LOGGER.info("Notify onMouseDown handler of canvas coordinates");
     this.props.onMouseDown(x, y);
   };
 }
