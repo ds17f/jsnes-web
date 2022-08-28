@@ -1,7 +1,12 @@
 import { ButtonKey, ControllerKey } from "jsnes";
 import { getLogger } from "./utils/logging";
 
-const LOGGER = getLogger("GamepadController");
+// Silence logging because the polling loop is very noisy
+// if you need/want to see stuff in here
+// switch the LOGGER definitions below
+const LOGGER = getLogger("GamepadController", true);
+// const LOGGER = getLogger("GamepadController");
+
 
 type ButtonTypes = "axis" | "button";
 
@@ -123,29 +128,29 @@ export default class GamepadController {
   };
 
   poll = () => {
-    LOGGER.trace("Polling Gamepad");
+    LOGGER.debug("Polling Gamepad");
 
     const gamepads: Gamepad[] = navigator.getGamepads
       ? navigator.getGamepads()
       // @ts-ignore webkitGetGamepads() isn't a thing?
       : navigator.webkitGetGamepads(); // TODO: what is webkitGetGamepads()
-    LOGGER.trace("GamePads: ", JSON.stringify(gamepads));
+    LOGGER.debug("GamePads: ", JSON.stringify(gamepads));
 
     const usedPlayers = [];
 
     for (let gamepadIndex = 0; gamepadIndex < gamepads.length; gamepadIndex++) {
-      LOGGER.debug(`Reading gamepad ${gamepadIndex} button states (?????)`);
+      LOGGER.info(`Reading gamepad ${gamepadIndex} button states (?????)`);
       const gamepad = gamepads[gamepadIndex];
       const previousGamepad = this.gamepadState[gamepadIndex];
-      LOGGER.trace({ gamepad, previousGamepad });
+      LOGGER.debug({ gamepad, previousGamepad });
 
       if (!gamepad) {
-        LOGGER.debug("No gamepad found");
+        LOGGER.info("No gamepad found");
         continue;
       }
 
       if (!previousGamepad) {
-        LOGGER.debug("Initialize gamepad state");
+        LOGGER.info("Initialize gamepad state");
         this.gamepadState[gamepadIndex] = {
           buttons: gamepad.buttons.map(b => Object.assign({}, b)),
           axes: gamepad.axes.slice(0)
@@ -153,14 +158,14 @@ export default class GamepadController {
         continue;
       }
 
-      LOGGER.debug("Load button current and prior states");
+      LOGGER.info("Load button current and prior states");
       const buttons = gamepad.buttons;
       const previousButtons = previousGamepad.buttons;
 
       if (this.buttonCallback) {
-        LOGGER.debug("this.buttonCallback exists");
+        LOGGER.info("this.buttonCallback exists");
 
-        LOGGER.debug("Process axes changes");
+        LOGGER.info("Process axes changes");
         for (let code = 0; code < gamepad.axes.length; code++) {
           /**
            * If the axis has changed state to be axisState, notify the buttonCallback
@@ -174,9 +179,9 @@ export default class GamepadController {
           ) => {
             const axis = gamepad.axes[code];
             const previousAxis = previousGamepad.axes[code];
-            LOGGER.trace({ axis, previousAxis });
+            LOGGER.debug({ axis, previousAxis });
             if (axis === axisState && previousAxis !== axisState) {
-              LOGGER.debug(
+              LOGGER.info(
                 `Axis changed to ${axisState}, call notify buttonCallback`
               );
               const buttonCallbackProps: ButtonCallbackProps = {
@@ -185,7 +190,7 @@ export default class GamepadController {
                 code: code,
                 value: axis
               };
-              LOGGER.trace({ buttonCallbackProps });
+              LOGGER.debug({ buttonCallbackProps });
               buttonCallback(buttonCallbackProps);
             }
           };
@@ -194,44 +199,44 @@ export default class GamepadController {
           processAxisChange(1, this.buttonCallback);
         }
 
-        LOGGER.debug("Process button changes for all buttons on the gamepad");
+        LOGGER.info("Process button changes for all buttons on the gamepad");
         for (let code = 0; code < buttons.length; code++) {
           const button = buttons[code];
           const previousButton = previousButtons[code];
-          LOGGER.trace(`Gamepad Button: ${button}`);
-          LOGGER.trace(`Prior button state: ${previousButton}`);
+          LOGGER.debug(`Gamepad Button: ${button}`);
+          LOGGER.debug(`Prior button state: ${previousButton}`);
 
           if (button.pressed && !previousButton.pressed) {
-            LOGGER.debug(`button: ${button} has been pressed`);
+            LOGGER.info(`button: ${button} has been pressed`);
             const buttonCallbackProps: ButtonCallbackProps = {
               gamepadId: gamepad.id,
               type: "button",
               code: code
             };
-            LOGGER.trace(`buttonCallbackProps: ${buttonCallbackProps}`);
+            LOGGER.debug(`buttonCallbackProps: ${buttonCallbackProps}`);
             this.buttonCallback(buttonCallbackProps);
           }
         }
       } else if (this.gamepadConfig) {
-        LOGGER.debug("No buttonCallback, but yes gamepadConfig");
+        LOGGER.info("No buttonCallback, but yes gamepadConfig");
         let playerNumber = this._getPlayerNumberFromGamepad(gamepad);
-        LOGGER.trace(`player number: ${playerNumber}`);
+        LOGGER.debug(`player number: ${playerNumber}`);
         if (usedPlayers.length < 2) {
-          LOGGER.debug("Adding player gamepad");
+          LOGGER.info("Adding player gamepad");
           if (usedPlayers.indexOf(playerNumber) !== -1) {
-            LOGGER.debug("New player");
+            LOGGER.info("New player");
             playerNumber++;
             if (playerNumber > 2) playerNumber = 1;
           }
           usedPlayers.push(playerNumber);
 
           if (this.gamepadConfig.configs[gamepad.id]) {
-            LOGGER.debug(`Gamepad ${gamepad.id} is configured`);
+            LOGGER.info(`Gamepad ${gamepad.id} is configured`);
             const configButtons = this.gamepadConfig.configs[gamepad.id]
               .buttons;
-            LOGGER.trace(`configButtons: ${configButtons}`);
+            LOGGER.debug(`configButtons: ${configButtons}`);
 
-            LOGGER.debug("Process button presses");
+            LOGGER.info("Process button presses");
             for (let i = 0; i < configButtons.length; i++) {
               const configButton = configButtons[i];
               const playerControllerKey = playerNumber as ControllerKey;
@@ -241,12 +246,12 @@ export default class GamepadController {
                 const previousButton = previousButtons[code];
 
                 if (button.pressed && !previousButton.pressed) {
-                  LOGGER.trace(
+                  LOGGER.debug(
                     `Button ${button} has been pressed, notify onButtonDown`
                   );
                   this.onButtonDown(playerControllerKey, configButton.buttonId);
                 } else if (!button.pressed && previousButton.pressed) {
-                  LOGGER.trace(
+                  LOGGER.debug(
                     `Button ${button} has been released, notify onButtonUp`
                   );
                   this.onButtonUp(playerControllerKey, configButton.buttonId);
@@ -260,7 +265,7 @@ export default class GamepadController {
                   axis === configButton.value &&
                   previousAxis !== configButton.value
                 ) {
-                  LOGGER.debug(
+                  LOGGER.info(
                     `axis: ${axis} is being pressed, notify onButtonDown`
                   );
                   this.onButtonDown(playerControllerKey, configButton.buttonId);
@@ -270,7 +275,7 @@ export default class GamepadController {
                   axis !== configButton.value &&
                   previousAxis === configButton.value
                 ) {
-                  LOGGER.debug(
+                  LOGGER.info(
                     `axis: ${axis} has been released, notify onButtonUp`
                   );
                   this.onButtonUp(playerControllerKey, configButton.buttonId);
@@ -281,7 +286,7 @@ export default class GamepadController {
         }
       }
 
-      LOGGER.debug("Update the state of the gamepad after processing");
+      LOGGER.info("Update the state of the gamepad after processing");
       this.gamepadState[gamepadIndex] = {
         buttons: buttons.map(b => Object.assign({}, b)),
         axes: gamepad.axes.slice(0)
@@ -294,13 +299,13 @@ export default class GamepadController {
    * @param f
    */
   promptButton = (f: (buttonInfo: ButtonCallbackProps | undefined) => void) => {
-    LOGGER.trace("Gamepad promptButton");
-    LOGGER.trace(f);
+    LOGGER.debug("Gamepad promptButton");
+    LOGGER.debug(f);
     if (!f) {
-      LOGGER.debug("Clear buttonCallback");
+      LOGGER.info("Clear buttonCallback");
       this.buttonCallback = f;
     } else {
-      LOGGER.debug("Set buttonCallback");
+      LOGGER.info("Set buttonCallback");
       this.buttonCallback = (buttonInfo: ButtonCallbackProps) => {
         this.buttonCallback = null;
         f(buttonInfo);

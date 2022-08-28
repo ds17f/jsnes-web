@@ -1,14 +1,15 @@
 import Pino  from 'pino'
 
-const DEFAULT_LOG_LEVEL = "fatal";
+const DEFAULT_LOG_LEVEL = "debug";
 
 /**
  * Get a configured logger
  * @param service
+ * @param silenceOutput
  */
-export const getLogger = (service: string): Pino.Logger => {
+export const getLogger = (service: string, silenceOutput: boolean = false): Pino.Logger => {
   const logger = Pino({
-    level: process.env.LOG_LEVEL || DEFAULT_LOG_LEVEL,
+    level: silenceOutput ? "silent" : process.env.LOG_LEVEL || DEFAULT_LOG_LEVEL,
   }).child({
     service: service,
   })
