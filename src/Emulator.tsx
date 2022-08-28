@@ -9,6 +9,9 @@ import KeyboardController from "./KeyboardController";
 import Screen from "./Screen";
 import Speakers from "./Speakers";
 
+import { getLogger } from "./utils/logging";
+const LOGGER = getLogger("Emulator")
+
 /*
  * Runs the emulator.
  *
@@ -55,7 +58,7 @@ class Emulator extends Component {
         //   done by audio instead of requestAnimationFrame.
         // - System can't run emulator at full speed. In this case it'll stop
         //    firing requestAnimationFrame.
-        console.log(
+        LOGGER.trace(
           "Buffer underrun, running another frame to try and catch up"
         );
 
@@ -64,7 +67,7 @@ class Emulator extends Component {
         // frame so we might need a second frame to be run. Give up after that
         // though -- the system is not catching up
         if (this.speakers.buffer.size() < desiredSize) {
-          console.log("Still buffer underrun, running a second frame");
+          LOGGER.trace("Still buffer underrun, running a second frame");
           this.frameTimer.generateFrame();
         }
       }
@@ -72,7 +75,7 @@ class Emulator extends Component {
 
     this.nes = new NES({
       onFrame: this.screen.setBuffer,
-      onStatusUpdate: console.log,
+      onStatusUpdate: LOGGER.info,
       onAudioSample: this.speakers.writeSample,
       sampleRate: this.speakers.getSampleRate()
     });
@@ -153,7 +156,7 @@ class Emulator extends Component {
     this.frameTimer.start();
     this.speakers.start();
     this.fpsInterval = setInterval(() => {
-      console.log(`FPS: ${this.nes.getFPS()}`);
+      LOGGER.trace(`FPS: ${this.nes.getFPS()}`);
     }, 1000);
   };
 

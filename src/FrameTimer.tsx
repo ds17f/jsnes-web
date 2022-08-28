@@ -1,3 +1,6 @@
+import { getLogger } from "./utils/logging";
+const LOGGER = getLogger("FrameTimer")
+
 const FPS = 60.098;
 
 export default class FrameTimer {
@@ -53,7 +56,7 @@ export default class FrameTimer {
 
     // This can happen a lot on a 144Hz display
     if (numFrames === 0) {
-      //console.log("WOAH, no frames");
+      LOGGER.trace("WOAH, no frames");
       return;
     }
 
@@ -71,6 +74,8 @@ export default class FrameTimer {
         this.generateFrame();
       }, (i * timeToNextFrame) / numFrames);
     }
-    if (numFrames > 1) console.log("SKIP", numFrames - 1, this.lastFrameTime);
+    if (numFrames > 1) {
+      LOGGER.trace("SKIP", numFrames - 1, this.lastFrameTime);
+    }
   };
 }
