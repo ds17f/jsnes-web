@@ -1,12 +1,23 @@
-import RingBuffer from "ringbufferjs";
+// @ts-ignore
+import RingBuffer from "ringbufferjs"; // TODO: replace with ring-buffer-ts
 import { handleError } from "./utils/utils";
 
 import { getLogger } from "./utils/logging";
 const LOGGER = getLogger("Speakers");
 
+interface SpeakerProps {
+  onBufferUnderrun: any;
+}
+
 export default class Speakers {
-  constructor({ onBufferUnderrun }) {
-    this.onBufferUnderrun = onBufferUnderrun;
+  private readonly bufferSize: number;
+  private readonly onBufferUnderrun: any;
+  private readonly buffer: any;
+  private audioCtx?: AudioContext | null;
+  private scriptNode?: ScriptProcessorNode | null;
+
+  constructor(props: SpeakerProps) {
+    this.onBufferUnderrun = props.onBufferUnderrun;
     this.bufferSize = 8192;
     this.buffer = new RingBuffer(this.bufferSize * 2);
   }
@@ -24,6 +35,7 @@ export default class Speakers {
   start() {
     // Audio is not supported
     if (!window.AudioContext) {
+      LOGGER.info("No AudioContext, Audio is not supported");
       return;
     }
     this.audioCtx = new window.AudioContext();
@@ -34,7 +46,9 @@ export default class Speakers {
 
   stop() {
     if (this.scriptNode) {
-      this.scriptNode.disconnect(this.audioCtx.destination);
+      this.audioCtx &&
+        this.audioCtx.destination &&
+        this.scriptNode.disconnect(this.audioCtx.destination);
       this.scriptNode.onaudioprocess = null;
       this.scriptNode = null;
     }
@@ -44,43 +58,45 @@ export default class Speakers {
     }
   }
 
-  writeSample = (left, right) => {
+  writeSample = (left: number, right: number) => {
     if (this.buffer.size() / 2 >= this.bufferSize) {
-      LOGGER.trace("Buffer overrun")
+      LOGGER.trace("Buffer overrun");
       this.buffer.deqN(this.bufferSize / 2);
     }
     this.buffer.enq(left);
     this.buffer.enq(right);
   };
 
-  onaudioprocess = e => {
-    var left = e.outputBuffer.getChannelData(0);
-    var right = e.outputBuffer.getChannelData(1);
-    var size = left.length;
+  onaudioprocess = (e: AudioProcessingEvent) => {
+    const left = e.outputBuffer.getChannelData(0);
+    const right = e.outputBuffer.getChannelData(1);
+    const size = left.length;
 
     // We're going to buffer underrun. Attempt to fill the buffer.
     if (this.buffer.size() < size * 2 && this.onBufferUnderrun) {
       this.onBufferUnderrun(this.buffer.size(), size * 2);
     }
 
+    let samples;
     try {
-      var samples = this.buffer.deqN(size * 2);
+      // TODO, this deq and assigns the samples
+      samples = this.buffer.deqN(size * 2);
     } catch (e) {
       // onBufferUnderrun failed to fill the buffer, so handle a real buffer
       // underrun
 
       // ignore empty buffers... assume audio has just stopped
-      var bufferSize = this.buffer.size() / 2;
+      const bufferSize = this.buffer.size() / 2;
       if (bufferSize > 0) {
         LOGGER.debug(`Buffer underrun (needed ${size}, got ${bufferSize})`);
       }
-      for (var j = 0; j < size; j++) {
+      for (let j = 0; j < size; j++) {
         left[j] = 0;
         right[j] = 0;
       }
       return;
     }
-    for (var i = 0; i < size; i++) {
+    for (let i = 0; i < size; i++) {
       left[i] = samples[i * 2];
       right[i] = samples[i * 2 + 1];
     }
