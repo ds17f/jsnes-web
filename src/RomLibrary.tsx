@@ -37,8 +37,11 @@ export interface RomInfo {
 }
 
 const RomLibrary = {
-  getRomInfoByHash: function(hash: Key) {
-    return this.load().find(rom => rom.hash === hash);
+  getRomInfoByHash: function(hash: Key): RomInfo | undefined {
+    LOGGER.info(`Getting rom info for: ${hash}`)
+    const loadedRomInfo = this.load().find(rom => rom.hash === hash);
+    LOGGER.debug({ loadedRomInfo });
+    return loadedRomInfo;
   },
   save: function(file: File): Promise<RomInfo> {
     return pFileReader(file)
@@ -68,11 +71,19 @@ const RomLibrary = {
   },
   load: function(): RomInfo[] {
     const localData = localStorage.getItem("savedRomInfo");
-    if (!localData) return [];
-    LOGGER.warn(localData);
-    const savedRomInfo = JSON.parse(localStorage.getItem("savedRomInfo"));
+    if (!localData) {
+      LOGGER.info("No 'savedRomInfo' found in localStorage");
+      return [];
+    }
+    LOGGER.info({localData});
+    const savedRomInfo = JSON.parse(localData);
+    if (!savedRomInfo) {
+      LOGGER.info("'savedRomInfo' found but was empty");
+      return [];
+    }
 
-    return savedRomInfo || [];
+    LOGGER.debug({savedRomInfo});
+    return savedRomInfo;
   },
   delete: function(hash) {
     const existingLibrary = this.load();

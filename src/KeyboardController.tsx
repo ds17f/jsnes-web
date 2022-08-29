@@ -40,7 +40,8 @@ interface KeyboardControllerOptions {
 export default class KeyboardController {
   private readonly onButtonDown: (controller: ControllerKey, button: ButtonKey) => {};
   private readonly onButtonUp: (controller: ControllerKey, button: ButtonKey) => {};
-  private keys: KeyboardMapping | undefined;
+  public keys: KeyboardMapping | undefined;
+
   constructor(options: KeyboardControllerOptions) {
     this.onButtonDown = options.onButtonDown;
     this.onButtonUp = options.onButtonUp;

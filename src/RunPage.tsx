@@ -1,28 +1,57 @@
-import React, { Component } from "react";
+import React, {
+  Component,
+  ComponentProps,
+  ComponentType,
+  ReactElement
+} from "react";
 import { Button, Progress } from "reactstrap";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, Params, useLocation, useParams } from "react-router-dom";
 
-import config from "./config";
+import config, { RomConfig } from "./config";
 import ControlsModal from "./ControlsModal";
 import Emulator from "./Emulator";
 import RomLibrary from "./RomLibrary";
 import { loadBinary } from "./utils/utils";
+import { getLogger } from "./utils/logging";
+import * as ReactRouter from "react-router-dom";
 
 import "./RunPage.css";
 
-export const LOCAL_ROM_FLAG = "local-"
+const LOGGER = getLogger("RunPage");
 
-function withParams(Component) {
-  return props => (
+export const LOCAL_ROM_FLAG = "local-";
+
+function withParams(Component: ComponentType<any>) {
+  return (props: ComponentProps<any>) => (
     <Component {...props} params={useParams()} location={useLocation()} />
   );
+}
+
+interface RunPageProps {
+  params: Readonly<Params>;
+  location: ReactRouter.Location;
+}
+interface RunPageState {
+  romName: ReactElement | string | null;
+  romData: string | null; // TODO: Is this really a string?
+  running: boolean;
+  paused: boolean;
+  controlsModalOpen: boolean;
+  loading: boolean;
+  loadedPercent: number;
+  error: string | null;
 }
 
 /*
  * The UI for the emulator. Also responsible for loading ROM from URL or file.
  */
-class RunPage extends Component {
-  constructor(props) {
+class RunPage extends Component<RunPageProps, RunPageState> {
+  private emulator?: Emulator | null;
+  private navbar?: HTMLElement | null;
+  private screenContainer?: HTMLElement | null;
+  private currentRequest?: XMLHttpRequest | null;
+
+  constructor(props: RunPageProps) {
     super(props);
     this.state = {
       romName: null,
@@ -113,12 +142,12 @@ class RunPage extends Component {
               <ControlsModal
                 isOpen={this.state.controlsModalOpen}
                 toggle={this.toggleControlsModal}
-                keys={this.emulator.keyboardController.keys}
-                setKeys={this.emulator.keyboardController.setKeys}
-                promptButton={this.emulator.gamepadController.promptButton}
-                gamepadConfig={this.emulator.gamepadController.gamepadConfig}
+                keys={this.emulator!.keyboardController.keys!}
+                setKeys={this.emulator!.keyboardController.setKeys}
+                promptButton={this.emulator!.gamepadController.promptButton}
+                gamepadConfig={this.emulator!.gamepadController.gamepadConfig!}
                 setGamepadConfig={
-                  this.emulator.gamepadController.setGamepadConfig
+                  this.emulator!.gamepadController.setGamepadConfig
                 }
               />
             )}
@@ -142,58 +171,107 @@ class RunPage extends Component {
   }
 
   load = () => {
-    console.log("load");
-    if (this.props.params.slug) {
-      const slug = this.props.params.slug;
-      const isLocalROM = new RegExp(`^${LOCAL_ROM_FLAG}`).test(slug);
-      const romHash = slug.split("-")[1];
-      const romInfo = isLocalROM
-        ? RomLibrary.getRomInfoByHash(romHash)
-        : config.ROMS[slug];
+    LOGGER.info("Load rom");
+    LOGGER.debug({ params: this.props.params });
+    LOGGER.debug({ locationState: this.props.location.state });
 
-      if (!romInfo) {
-        this.setState({ error: `No such ROM: ${slug}` });
-        return;
-      }
+    const { slug } = this.props.params;
+    // @ts-ignore state is type unknown
+    // TODO: When can we have a File in the state?
+    const file = this.props.location.state?.file as File;
+
+    if (!slug && !file) {
+      LOGGER.info("No slug and no file, so no rom");
+      this.setState({ error: "No ROM provided" });
+      return;
+    }
+
+    if (slug) {
+      LOGGER.info("Slug provided, load rom");
+      const isLocalROM = new RegExp(`^${LOCAL_ROM_FLAG}`).test(slug);
 
       if (isLocalROM) {
-        this.setState({ romName: romInfo.name });
-        const localROMData = localStorage.getItem("blob-" + romHash);
-        this.handleLoaded(localROMData);
+        this.loadRomFromLocalStorage(slug);
       } else {
-        this.setState({ romName: romInfo.description });
-        this.currentRequest = loadBinary(
-          romInfo.url,
-          (err, data) => {
-            if (err) {
-              this.setState({ error: `Error loading ROM: ${err.message}` });
-            } else {
-              this.handleLoaded(data);
-            }
-          },
-          this.handleProgress
-        );
+        this.loadRomFromURI(config.ROMS[slug]);
       }
-    } else if (this.props.location.state && this.props.location.state.file) {
-      let reader = new FileReader();
-      reader.readAsBinaryString(this.props.location.state.file);
-      reader.onload = e => {
-        this.currentRequest = null;
-        this.handleLoaded(reader.result);
-      };
-    } else {
-      this.setState({ error: "No ROM provided" });
+      return;
+    }
+
+    if (file) {
+      LOGGER.info("No slug, but file provided, load rom from file");
+      this.loadRomFromFile(file);
+      return;
     }
   };
 
-  handleProgress = e => {
+  /**
+   * Loads a rom from local storage using the slug to generate a key
+   * @param slug expects the slug to be formatted as `local-{hash}`
+   */
+  loadRomFromLocalStorage = (slug: string) => {
+    const romHash = slug.split("-")[1];
+    const romInfo = RomLibrary.getRomInfoByHash(romHash);
+    if (!romInfo) {
+      LOGGER.info("No rom info found for local rom");
+      this.setState({ error: `No such ROM: ${slug}` });
+      return;
+    }
+
+    this.setState({ romName: romInfo.name });
+    const localROMData = localStorage.getItem("blob-" + romHash);
+    if (!localROMData) {
+      LOGGER.info(
+        "Failed to load from local storage: Local rom data was empty"
+      );
+      this.setState({ error: `ROM data in Local Storage is bad: ${slug}` });
+      return;
+    }
+    this.handleLoaded(localROMData);
+  };
+
+  /**
+   * Loads a rom from URL by using the slug to look up a config value
+   * @param romConfig
+   */
+  loadRomFromURI = (romConfig: RomConfig) => {
+    this.setState({ romName: romConfig.description });
+    this.currentRequest = loadBinary(
+      romConfig.url,
+      (err: Error, nesRomString: string) => {
+        LOGGER.info({ loadedUriData: nesRomString });
+        if (err) {
+          this.setState({ error: `Error loading ROM: ${err.message}` });
+        } else {
+          this.handleLoaded(nesRomString);
+        }
+      },
+      this.handleProgress
+    );
+  };
+
+  /**
+   * Loads a rom from a file object
+   * @param file
+   */
+  loadRomFromFile = (file: File) => {
+    let reader = new FileReader();
+    reader.readAsBinaryString(file);
+    reader.onload = () => {
+      this.currentRequest = null;
+      this.handleLoaded(reader.result as string);
+    };
+  };
+
+  handleProgress = (e: ProgressEvent) => {
     if (e.lengthComputable) {
       this.setState({ loadedPercent: (e.loaded / e.total) * 100 });
     }
   };
 
-  handleLoaded = data => {
-    this.setState({ running: true, loading: false, romData: data });
+  handleLoaded = (romData: string) => {
+    LOGGER.debug({ romData });
+    this.setState({ running: true, loading: false, romData });
   };
 
   handlePauseResume = () => {
@@ -201,8 +279,8 @@ class RunPage extends Component {
   };
 
   layout = () => {
-    let navbarHeight = parseFloat(window.getComputedStyle(this.navbar).height);
-    this.screenContainer.style.height = `${window.innerHeight -
+    let navbarHeight = parseFloat(window.getComputedStyle(this.navbar!).height);
+    this.screenContainer!.style.height = `${window.innerHeight -
       navbarHeight}px`;
     if (this.emulator) {
       this.emulator.fitInParent();

@@ -23,14 +23,18 @@ const LOGGER = getLogger("ControlsModal");
 const GAMEPAD_ICON = "../img/nes_controller.png";
 const KEYBOARD_ICON = "../img/keyboard.png";
 
+export type PromptButtonHandler = (
+  buttonDownHandler: GamepadButtonDownHandler | null
+) => void;
+
+export type GamepadButtonDownHandler = (callback: ButtonCallbackProps) => void;
+
 interface ControlsModalProps {
   gamepadConfig: Gamepads;
   keys: KeyboardMapping;
   setKeys: (keys: KeyboardMapping) => void;
   setGamepadConfig: (gamepadConfig: Gamepads) => void;
-  promptButton: (
-    handleGamepadButtonDown: ((callback: ButtonCallbackProps) => void) | null
-  ) => void;
+  promptButton: PromptButtonHandler;
   isOpen?: boolean;
   toggle?: MouseEventHandler<HTMLButtonElement>;
 }
@@ -47,35 +51,32 @@ interface ControlsModalState {
 class ControlsModal extends Component<ControlsModalProps, ControlsModalState> {
   constructor(props: ControlsModalProps) {
     super(props);
-    this.state = {
-      gamepadConfig: props.gamepadConfig,
-      keys: props.keys,
-      button: undefined,
-      modified: false
-    };
     this.handleKeyDown = this.handleKeyDown.bind(this);
     this.handleGamepadButtonDown = this.handleGamepadButtonDown.bind(this);
     this.listenForKey = this.listenForKey.bind(this);
 
     LOGGER.info("initialize gamepad with defaults");
-    const gamepadConfig = this.state.gamepadConfig || {};
-    gamepadConfig.playerGamepadId = this.state.gamepadConfig
-      .playerGamepadId || [null, null];
-    gamepadConfig.configs = this.state.gamepadConfig.configs || {};
+    const gamepadConfig = this.props.gamepadConfig || {};
+    gamepadConfig.playerGamepadId = this.props.gamepadConfig.playerGamepadId || [null, null];
+    gamepadConfig.configs = this.props.gamepadConfig.configs || {};
     LOGGER.info("initialize icons");
-    const controllerIcon = this.state.gamepadConfig.playerGamepadId.map(
+    const controllerIcon = this.props.gamepadConfig.playerGamepadId.map(
       gamepadId => (gamepadId ? GAMEPAD_ICON : KEYBOARD_ICON)
     );
-    const controllerIconAlt = this.state.gamepadConfig.playerGamepadId.map(
+    const controllerIconAlt = this.props.gamepadConfig.playerGamepadId.map(
       gamepadId => (gamepadId ? "gamepad" : "keyboard")
     );
+
     LOGGER.info("set initialized state");
-    this.setState({
+    this.state = {
       gamepadConfig,
       controllerIcon,
       controllerIconAlt,
-      currentPromptButton: -1
-    });
+      currentPromptButton: -1,
+      keys: props.keys,
+      button: undefined,
+      modified: false
+    };
   }
 
   componentWillUnmount() {
@@ -106,7 +107,9 @@ class ControlsModal extends Component<ControlsModalProps, ControlsModalState> {
     document.addEventListener("keydown", this.handleKeyDown);
   }
 
-  handleGamepadButtonDown(buttonInfo: ButtonCallbackProps) {
+  handleGamepadButtonDown: GamepadButtonDownHandler = (
+    buttonInfo: ButtonCallbackProps
+  ) => {
     // Clear the key that we are resetting
     this.removeKeyListener();
 
@@ -150,7 +153,7 @@ class ControlsModal extends Component<ControlsModalProps, ControlsModalState> {
       ),
       modified: true
     });
-  }
+  };
 
   handleKeyDown(event: KeyboardEvent) {
     this.removeKeyListener();

@@ -10,7 +10,12 @@ import Screen from "./Screen";
 import Speakers from "./Speakers";
 
 import { getLogger } from "./utils/logging";
-const LOGGER = getLogger("Emulator")
+const LOGGER = getLogger("Emulator");
+
+interface EmulatorProps {
+  romData: string;
+  paused?: boolean;
+}
 
 /*
  * Runs the emulator.
@@ -18,8 +23,9 @@ const LOGGER = getLogger("Emulator")
  * The only UI is a canvas element. It assumes it is a singleton in various ways
  * (binds to window, keyboard, speakers, etc).
  */
-class Emulator extends Component {
+class Emulator extends Component<EmulatorProps> {
   public gamepadController: GamepadController;
+  public keyboardController: KeyboardController;
 
   render() {
     return (

@@ -4,8 +4,11 @@ import {
   NesGamepadButton,
   Gamepads
 } from "./GamepadController";
-import {KeyboardMapping} from "./KeyboardController";
-import {ButtonKey, ControllerKey} from "jsnes";
+import { KeyboardMapping } from "./KeyboardController";
+import { ButtonKey, ControllerKey } from "jsnes";
+
+import { getLogger } from "./utils/logging";
+const LOGGER = getLogger("ControMapperRow");
 
 interface ControlMapperRowProps {
   buttonName: string;
@@ -44,7 +47,7 @@ class ControlMapperRow extends Component<
     for (const key in keys) {
       if (keys[key][0] === 1 && keys[key][1] === button) {
         playerButtons[0] = keys[key][2];
-        console.log(playerButtons[0]);
+        LOGGER.info(playerButtons[0]);
       } else if (keys[key][0] === 2 && keys[key][1] === button) {
         playerButtons[1] = keys[key][2];
       }
@@ -68,7 +71,7 @@ class ControlMapperRow extends Component<
     for (const key in keys) {
       if (keys[key][0] === 1 && keys[key][1] === button) {
         playerButtons[0] = keys[key][2];
-        console.log(playerButtons[0]);
+        LOGGER.info(playerButtons[0]);
       } else if (keys[key][0] === 2 && keys[key][1] === button) {
         playerButtons[1] = keys[key][2];
       }
@@ -154,7 +157,10 @@ class ControlMapperRow extends Component<
     const newState: ControlMapperRowState = {};
 
     if (waitingForKey) {
-      this.props.handleClick(waitingForKeyPlayer as ControllerKey, this.props.button);
+      this.props.handleClick(
+        waitingForKeyPlayer as ControllerKey,
+        this.props.button
+      );
     }
     // Prevent setState being called repeatedly
     if (

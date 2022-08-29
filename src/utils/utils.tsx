@@ -5,7 +5,7 @@ export const handleError = (error, errorInfo) => {
   Raven.captureException(error, { extra: errorInfo });
 };
 
-export function loadBinary(path, callback, handleProgress) {
+export function loadBinary(path, callback, handleProgress): XMLHttpRequest {
   var req = new XMLHttpRequest();
   req.open("GET", path);
   req.overrideMimeType("text/plain; charset=x-user-defined");

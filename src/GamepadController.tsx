@@ -1,12 +1,12 @@
 import { ButtonKey, ControllerKey } from "jsnes";
 import { getLogger } from "./utils/logging";
+import {GamepadButtonDownHandler, PromptButtonHandler} from "./ControlsModal";
 
 // Silence logging because the polling loop is very noisy
 // if you need/want to see stuff in here
 // switch the LOGGER definitions below
 const LOGGER = getLogger("GamepadController", true);
 // const LOGGER = getLogger("GamepadController");
-
 
 type ButtonTypes = "axis" | "button";
 
@@ -84,8 +84,8 @@ export default class GamepadController {
   ) => {};
   /** Track the state of the gamepads */
   private readonly gamepadState: GamepadState[];
-  private buttonCallback: ((props: ButtonCallbackProps) => void) | null;
-  private gamepadConfig: Gamepads | undefined;
+  private buttonCallback: GamepadButtonDownHandler | null;
+  public gamepadConfig: Gamepads | undefined;
 
   constructor(options: GamepadControllerOptions) {
     this.onButtonDown = options.onButtonDown;
@@ -132,8 +132,8 @@ export default class GamepadController {
 
     const gamepads: Gamepad[] = navigator.getGamepads
       ? navigator.getGamepads()
-      // @ts-ignore webkitGetGamepads() isn't a thing?
-      : navigator.webkitGetGamepads(); // TODO: what is webkitGetGamepads()
+      : // @ts-ignore webkitGetGamepads() isn't a thing?
+        navigator.webkitGetGamepads(); // TODO: what is webkitGetGamepads()
     LOGGER.debug("GamePads: ", JSON.stringify(gamepads));
 
     const usedPlayers = [];
@@ -296,19 +296,21 @@ export default class GamepadController {
 
   /**
    * Used for binding gamepad buttons to a callback for the button
-   * @param f
+   * @param buttonDownHandler
    */
-  promptButton = (f: (buttonInfo: ButtonCallbackProps | undefined) => void) => {
+  promptButton: PromptButtonHandler = (
+    buttonDownHandler: ((buttonInfo: ButtonCallbackProps) => void) | null
+  ) => {
     LOGGER.debug("Gamepad promptButton");
-    LOGGER.debug(f);
-    if (!f) {
+    LOGGER.debug(buttonDownHandler);
+    if (!buttonDownHandler) {
       LOGGER.info("Clear buttonCallback");
-      this.buttonCallback = f;
+      this.buttonCallback = buttonDownHandler;
     } else {
       LOGGER.info("Set buttonCallback");
       this.buttonCallback = (buttonInfo: ButtonCallbackProps) => {
         this.buttonCallback = null;
-        f(buttonInfo);
+        buttonDownHandler(buttonInfo);
       };
     }
   };

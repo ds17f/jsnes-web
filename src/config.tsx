@@ -9,7 +9,7 @@ interface JsNesWebConfig {
   BASENAME: () => string;
 }
 
-interface RomConfig {
+export interface RomConfig {
   name: string;
   description: ReactElement;
   url: string;
