@@ -1,10 +1,23 @@
 import { getLogger } from "./utils/logging";
-const LOGGER = getLogger("FrameTimer")
+const LOGGER = getLogger("FrameTimer");
 
 const FPS = 60.098;
 
+interface FrameTimerProps {
+  onGenerateFrame: () => void;
+  onWriteFrame: () => void;
+}
+
 export default class FrameTimer {
-  constructor(props) {
+  private readonly onGenerateFrame: () => void;
+  private readonly onWriteFrame: () => void;
+  private readonly interval: number;
+  private _requestID?: number;
+
+  private running: boolean;
+  private lastFrameTime: number;
+
+  constructor(props: FrameTimerProps) {
     // Run at 60 FPS
     this.onGenerateFrame = props.onGenerateFrame;
     // Run on animation frame
@@ -12,7 +25,7 @@ export default class FrameTimer {
     this.onAnimationFrame = this.onAnimationFrame.bind(this);
     this.running = true;
     this.interval = 1e3 / FPS;
-    this.lastFrameTime = false;
+    this.lastFrameTime = 0; // Was `false` but should be a number, was coerced to 0 anyway
   }
 
   start() {
@@ -22,8 +35,10 @@ export default class FrameTimer {
 
   stop() {
     this.running = false;
-    if (this._requestID) window.cancelAnimationFrame(this._requestID);
-    this.lastFrameTime = false;
+    if (this._requestID) {
+      window.cancelAnimationFrame(this._requestID);
+    }
+    this.lastFrameTime = 0; // Was `false` but should be a number, was coerced to 0 anyway
   }
 
   requestAnimationFrame() {
@@ -35,7 +50,7 @@ export default class FrameTimer {
     this.lastFrameTime += this.interval;
   }
 
-  onAnimationFrame = time => {
+  onAnimationFrame = (time: number) => {
     this.requestAnimationFrame();
     // how many ms after 60fps frame time
     let excess = time % this.interval;
