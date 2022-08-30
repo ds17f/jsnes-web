@@ -144,12 +144,12 @@ class RunPage extends Component<RunPageProps, RunPageState> {
               <ControlsModal
                 isOpen={this.state.controlsModalOpen}
                 toggle={this.toggleControlsModal}
-                keys={this.emulator!.keyboardController.keys!}
-                setKeys={this.emulator!.keyboardController.setKeys}
-                promptButton={this.emulator!.gamepadController.promptButton}
-                gamepadConfig={this.emulator!.gamepadController.gamepadConfig!}
+                keys={this.emulator!.keyboardController!.keys!}
+                setKeys={this.emulator!.keyboardController!.setKeys}
+                promptButton={this.emulator!.gamepadController!.promptButton}
+                gamepadConfig={this.emulator!.gamepadController!.gamepadConfig!}
                 setGamepadConfig={
-                  this.emulator!.gamepadController.setGamepadConfig
+                  this.emulator!.gamepadController!.setGamepadConfig
                 }
               />
             )}

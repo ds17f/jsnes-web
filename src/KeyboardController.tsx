@@ -33,13 +33,13 @@ const DEFAULT_KEYBOARD_MAPPING: KeyboardMapping = {
   102: [2, Controller.BUTTON_RIGHT, "Num-6"] // Num-6
 };
 interface KeyboardControllerOptions {
-  onButtonDown: (controller: ControllerKey, button: ButtonKey) => {};
-  onButtonUp: (controller: ControllerKey, button: ButtonKey) => {};
+  onButtonDown: (controller: ControllerKey, button: ButtonKey) => void
+  onButtonUp: (controller: ControllerKey, button: ButtonKey) => void
 }
 
 export default class KeyboardController {
-  private readonly onButtonDown: (controller: ControllerKey, button: ButtonKey) => {};
-  private readonly onButtonUp: (controller: ControllerKey, button: ButtonKey) => {};
+  private readonly onButtonDown: (controller: ControllerKey, button: ButtonKey) => void;
+  private readonly onButtonUp: (controller: ControllerKey, button: ButtonKey) => void;
   public keys: KeyboardMapping | undefined;
 
   constructor(options: KeyboardControllerOptions) {

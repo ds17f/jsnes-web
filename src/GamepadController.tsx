@@ -52,10 +52,13 @@ export interface ButtonCallbackProps {
   value?: number;
 }
 
+export interface StartPollingResult {
+  stop: () => void
+}
+
 interface GamepadControllerOptions {
-  onButtonDown: () => {};
-  onButtonUp: () => {};
-  gamepadState: Gamepad[];
+  onButtonDown: (controller: ControllerKey, button: ButtonKey) => void;
+  onButtonUp: (controller: ControllerKey, button: ButtonKey) => void;
 }
 
 /**
@@ -77,11 +80,11 @@ export default class GamepadController {
   private readonly onButtonDown: (
     controller: ControllerKey,
     button: ButtonKey
-  ) => {};
+  ) => void;
   private readonly onButtonUp: (
     controller: ControllerKey,
     button: ButtonKey
-  ) => {};
+  ) => void;
   /** Track the state of the gamepads */
   private readonly gamepadState: GamepadState[];
   private buttonCallback: GamepadButtonDownHandler | null;
@@ -95,7 +98,7 @@ export default class GamepadController {
   }
 
   disableIfGamepadEnabled = (
-    callback: (controller: ControllerKey, button: ButtonKey) => {}
+    callback: (controller: ControllerKey, button: ButtonKey) => void
   ) => {
     const self = this;
     return (playerId: ControllerKey, buttonId: ButtonKey) => {
@@ -338,7 +341,8 @@ export default class GamepadController {
     }
   };
 
-  startPolling = () => {
+
+  startPolling = (): StartPollingResult => {
     // @ts-ignore navigator.webkitGetGamepads isn't a thing?
     if (!(navigator.getGamepads || navigator.webkitGetGamepads)) {
       return { stop: () => {} };

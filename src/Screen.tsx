@@ -85,7 +85,7 @@ class Screen extends Component<ScreenProps> {
    * Convert the NES BGR (little endian RGB) pixel data to the HTML Canvas's ABGR (RGBA little endian)
    * @param buffer
    */
-  setBuffer = (buffer: Uint8ClampedArray) => {
+  setBuffer = (buffer: Buffer) => {
     let i = 0;
     LOGGER.trace("Convert pixel from NES BGR to canvas ABGR");
     for (let y = 0; y < SCREEN_HEIGHT; ++y) {
