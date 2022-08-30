@@ -26,6 +26,7 @@ interface EmulatorProps {
 class Emulator extends Component<EmulatorProps> {
   public gamepadController: GamepadController;
   public keyboardController: KeyboardController;
+  private speakers?: Speakers;
 
   render() {
     return (
@@ -52,7 +53,7 @@ class Emulator extends Component<EmulatorProps> {
     this.fitInParent();
 
     this.speakers = new Speakers({
-      onBufferUnderrun: (actualSize, desiredSize) => {
+      onBufferUnderRun: (actualSize, desiredSize) => {
         if (this.props.paused) {
           return;
         }
@@ -72,7 +73,7 @@ class Emulator extends Component<EmulatorProps> {
         // desiredSize will be 2048, and the NES produces 1468 samples on each
         // frame so we might need a second frame to be run. Give up after that
         // though -- the system is not catching up
-        if (this.speakers.buffer.size() < desiredSize) {
+        if (this.speakers!.bufferSize < desiredSize) {
           LOGGER.trace("Still buffer underrun, running a second frame");
           this.frameTimer.generateFrame();
         }

@@ -1,25 +1,33 @@
-// @ts-ignore
-import RingBuffer from "ringbufferjs"; // TODO: replace with ring-buffer-ts
+import { RingBuffer } from "ring-buffer-ts";
 import { handleError } from "./utils/utils";
 
 import { getLogger } from "./utils/logging";
 const LOGGER = getLogger("Speakers");
 
+type BufferUnderRunHandler = (actualSize: number, desiredSize: number) => void;
+
 interface SpeakerProps {
-  onBufferUnderrun: any;
+  onBufferUnderRun: BufferUnderRunHandler;
 }
 
 export default class Speakers {
-  private readonly bufferSize: number;
-  private readonly onBufferUnderrun: any;
-  private readonly buffer: any;
+  private readonly bufferCapacity: number;
+  private readonly onBufferUnderrun: BufferUnderRunHandler;
+  private readonly buffer: RingBuffer<number>;
   private audioCtx?: AudioContext | null;
   private scriptNode?: ScriptProcessorNode | null;
 
+  /**
+   * Returns the amount of the buffer that is used
+   */
+  public get bufferSize(): number {
+    return this.buffer.getBufferLength();
+  }
+
   constructor(props: SpeakerProps) {
-    this.onBufferUnderrun = props.onBufferUnderrun;
-    this.bufferSize = 8192;
-    this.buffer = new RingBuffer(this.bufferSize * 2);
+    this.onBufferUnderrun = props.onBufferUnderRun;
+    this.bufferCapacity = 8192;
+    this.buffer = new RingBuffer(this.bufferCapacity * 2);
   }
 
   getSampleRate() {
@@ -59,12 +67,12 @@ export default class Speakers {
   }
 
   writeSample = (left: number, right: number) => {
-    if (this.buffer.size() / 2 >= this.bufferSize) {
+    if (this.buffer.getBufferLength() / 2 >= this.bufferCapacity) {
       LOGGER.trace("Buffer overrun");
-      this.buffer.deqN(this.bufferSize / 2);
+      this.buffer.remove(0, this.bufferCapacity / 2);
     }
-    this.buffer.enq(left);
-    this.buffer.enq(right);
+    this.buffer.add(left);
+    this.buffer.add(right);
   };
 
   onaudioprocess = (e: AudioProcessingEvent) => {
@@ -73,20 +81,19 @@ export default class Speakers {
     const size = left.length;
 
     // We're going to buffer underrun. Attempt to fill the buffer.
-    if (this.buffer.size() < size * 2 && this.onBufferUnderrun) {
-      this.onBufferUnderrun(this.buffer.size(), size * 2);
+    if (this.buffer.getBufferLength() < size * 2 && this.onBufferUnderrun) {
+      this.onBufferUnderrun(this.buffer.getBufferLength(), size * 2);
     }
 
     let samples;
     try {
-      // TODO, this deq and assigns the samples
-      samples = this.buffer.deqN(size * 2);
+      samples = this.buffer.remove(0, size * 2);
     } catch (e) {
       // onBufferUnderrun failed to fill the buffer, so handle a real buffer
       // underrun
 
       // ignore empty buffers... assume audio has just stopped
-      const bufferSize = this.buffer.size() / 2;
+      const bufferSize = this.buffer.getBufferLength() / 2;
       if (bufferSize > 0) {
         LOGGER.debug(`Buffer underrun (needed ${size}, got ${bufferSize})`);
       }
