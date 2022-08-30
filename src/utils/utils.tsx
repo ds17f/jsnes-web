@@ -1,12 +1,26 @@
 import Raven from "raven-js";
+import { getLogger } from "./logging";
+import { ProgressHandler } from "../RunPage";
+import { ErrorInfo } from "react";
 
-export const handleError = (error, errorInfo = "") => {
-  console.error(error);
+const LOGGER = getLogger("utils");
+
+type LoadBinaryCallback = (err: Error | null, nesRomString?: string) => void;
+
+export const handleError = (
+  error: Error,
+  errorInfo: ErrorInfo | null = null
+) => {
+  LOGGER.error(error);
   Raven.captureException(error, { extra: errorInfo });
 };
 
-export function loadBinary(path, callback, handleProgress): XMLHttpRequest {
-  var req = new XMLHttpRequest();
+export function loadBinary(
+  path: string,
+  callback: LoadBinaryCallback,
+  handleProgress: ProgressHandler
+): XMLHttpRequest {
+  const req = new XMLHttpRequest();
   req.open("GET", path);
   req.overrideMimeType("text/plain; charset=x-user-defined");
   req.onload = function() {
@@ -30,4 +44,3 @@ export function loadBinary(path, callback, handleProgress): XMLHttpRequest {
   req.send();
   return req;
 }
-

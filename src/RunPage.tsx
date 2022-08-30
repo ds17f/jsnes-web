@@ -27,6 +27,8 @@ function withParams(Component: ComponentType<any>) {
   );
 }
 
+export type ProgressHandler = (e: ProgressEvent) => void;
+
 interface RunPageProps {
   params: Readonly<Params>;
   location: ReactRouter.Location;
@@ -238,10 +240,12 @@ class RunPage extends Component<RunPageProps, RunPageState> {
     this.setState({ romName: romConfig.description });
     this.currentRequest = loadBinary(
       romConfig.url,
-      (err: Error, nesRomString: string) => {
+      (err: Error | null, nesRomString?: string) => {
         LOGGER.info({ loadedUriData: nesRomString });
         if (err) {
           this.setState({ error: `Error loading ROM: ${err.message}` });
+        } else if (!nesRomString) {
+          this.setState({error: `Error loading ROM: empty rom data`});
         } else {
           this.handleLoaded(nesRomString);
         }
@@ -259,11 +263,15 @@ class RunPage extends Component<RunPageProps, RunPageState> {
     reader.readAsBinaryString(file);
     reader.onload = () => {
       this.currentRequest = null;
-      this.handleLoaded(reader.result as string);
+      if (!reader.result) {
+        this.setState({error: `Error loading ROM from file: no data read`});
+        return;
+      }
+      this.handleLoaded(reader.result.toString());
     };
   };
 
-  handleProgress = (e: ProgressEvent) => {
+  handleProgress: ProgressHandler = (e: ProgressEvent) => {
     if (e.lengthComputable) {
       this.setState({ loadedPercent: (e.loaded / e.total) * 100 });
     }
