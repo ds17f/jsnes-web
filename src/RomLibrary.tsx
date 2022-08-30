@@ -1,35 +1,32 @@
 import { getLogger } from "./utils/logging";
-import { Hash } from "crypto";
-import { Runtime } from "inspector";
 import { Key } from "react";
 const LOGGER = getLogger("RomLibrary");
 
 const pFileReader = function(file: File): Promise<ProgressEvent<FileReader>> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onload = resolve;
     reader.readAsBinaryString(file);
   });
 };
 
-const hashFile = function(byteString) {
-  const asHex = buffer => {
+const hashFile = function(byteString: string) {
+  const asHex = (buffer: ArrayBuffer) => {
     return Array.from(new Uint8Array(buffer))
       .map(b => b.toString(16).padStart(2, "0"))
       .join("");
   };
 
   const ab = new ArrayBuffer(byteString.length);
-  var ia = new Uint8Array(ab);
+  const ia = new Uint8Array(ab);
 
-  for (var i = 0; i < byteString.length; i++) {
+  for (let i = 0; i < byteString.length; i++) {
     ia[i] = byteString.charCodeAt(i);
   }
 
   return crypto.subtle.digest("SHA-1", ab).then(asHex);
 };
 
-//[{"name":"starfighter.nes","hash":"24631fec984c4e07bed44b77e35e40a6bdf29a90","added":1661704448241}]'
 export interface RomInfo {
   name: string;
   hash: Key;
@@ -47,7 +44,10 @@ const RomLibrary = {
     return pFileReader(file)
       .then(function(readFile) {
         const byteString = readFile.target?.result;
-        return hashFile(byteString).then((hash: string) => {
+        if (!byteString) {
+          throw new Error("Failed reading file target")
+        }
+        return hashFile(byteString.toString()).then((hash: string) => {
           return { hash, byteString };
         });
       })
@@ -85,7 +85,7 @@ const RomLibrary = {
     LOGGER.debug({savedRomInfo});
     return savedRomInfo;
   },
-  delete: function(hash) {
+  delete: function(hash: Key) {
     const existingLibrary = this.load();
     localStorage.removeItem("blob-" + hash);
     localStorage.setItem(
