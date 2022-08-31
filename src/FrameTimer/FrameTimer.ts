@@ -1,4 +1,4 @@
-import { getLogger } from "./utils/logging";
+import { getLogger } from "../utils";
 const LOGGER = getLogger("FrameTimer");
 
 const FPS = 60.098;
@@ -8,7 +8,7 @@ interface FrameTimerProps {
   onWriteFrame: () => void;
 }
 
-export default class FrameTimer {
+export class FrameTimer {
   private readonly onGenerateFrame: () => void;
   private readonly onWriteFrame: () => void;
   private readonly interval: number;

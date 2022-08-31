@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
 import { Routes, Route } from "react-router-dom";
-import ListPage from "./ListPage";
+import { ListPage } from "./ListPage";
 
 describe("ListPage", () => {
   it("renders without crashing", () => {

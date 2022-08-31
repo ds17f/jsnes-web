@@ -1,4 +1,5 @@
-import React, { ReactElement } from "react";
+import React from "react";
+import { RomConfig } from "./config.types";
 
 interface JsNesWebConfig {
   ROMS: {
@@ -9,13 +10,7 @@ interface JsNesWebConfig {
   BASENAME: () => string;
 }
 
-export interface RomConfig {
-  name: string;
-  description: ReactElement;
-  url: string;
-}
-
-const config: JsNesWebConfig = {
+export const config: JsNesWebConfig = {
   ROMS: {
     owlia: {
       name: "The Legends of Owlia",
@@ -113,5 +108,3 @@ const config: JsNesWebConfig = {
     return "";
   }
 };
-
-export default config;

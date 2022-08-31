@@ -8,11 +8,11 @@ import React, {
 import "./ListPage.css";
 import { ListGroup } from "reactstrap";
 import { Link, NavigateFunction, useNavigate } from "react-router-dom";
-import config from "./config";
-import { getLogger } from "./utils/logging";
+import { config } from "../config";
+import { getLogger } from "../utils";
 
-import RomLibrary, { RomInfo } from "./RomLibrary";
-import { LOCAL_ROM_FLAG } from "./RunPage";
+import { RomLibrary, RomInfo } from "../RomLibrary";
+import { LOCAL_ROM_FLAG } from "../RunPage";
 
 const LOGGER = getLogger("ListPage");
 
@@ -24,12 +24,6 @@ interface ListPageProps {
 }
 interface ListPageState {
   romLibrary: RomInfo[];
-}
-
-function withNavigate(Component: ComponentType<any>) {
-  return (props: ComponentProps<any>) => (
-    <Component {...props} navigate={useNavigate()} />
-  );
 }
 
 class ListPage extends Component<ListPageProps, ListPageState> {
@@ -163,4 +157,16 @@ class ListPage extends Component<ListPageProps, ListPageState> {
   };
 }
 
-export default withNavigate(ListPage);
+/**
+ * Add reactRouter useNavigate hooke result to the props of a component
+ * @param Component
+ */
+function withNavigate(Component: ComponentType<any>) {
+  return (props: ComponentProps<any>) => (
+    <Component {...props} navigate={useNavigate()} />
+  );
+}
+// Make a ListPage component that has navigate
+const ListPageWithNavigate = withNavigate(ListPage);
+// Export the navigate one as ListPage
+export { ListPageWithNavigate as ListPage };

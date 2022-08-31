@@ -3,11 +3,11 @@ import {
   GamepadButtonConfig,
   NesGamepadButton,
   Gamepads
-} from "./GamepadController";
-import { KeyboardMapping } from "./KeyboardController";
+} from "../GamepadController";
+import { KeyboardMapping } from "../KeyboardController";
 import { ButtonKey, ControllerKey } from "jsnes";
 
-import { getLogger } from "./utils/logging";
+import { getLogger } from "../utils";
 const LOGGER = getLogger("ControMapperRow");
 
 interface ControlMapperRowProps {
@@ -26,7 +26,7 @@ interface ControlMapperRowState {
   waitingForKey?: number;
 }
 
-class ControlMapperRow extends Component<
+export class ControlMapperRow extends Component<
   ControlMapperRowProps,
   ControlMapperRowState
 > {
@@ -214,5 +214,3 @@ class ControlMapperRow extends Component<
     );
   }
 }
-
-export default ControlMapperRow;

@@ -1,7 +1,7 @@
 import React, { Component, MouseEventHandler } from "react";
 import "./Screen.css";
 
-import { getLogger } from "./utils/logging";
+import { getLogger } from "../utils";
 const LOGGER = getLogger("Screen");
 
 const SCREEN_WIDTH: number = 256;
@@ -13,7 +13,7 @@ interface ScreenProps {
   onMouseUp: () => void;
 }
 
-class Screen extends Component<ScreenProps> {
+export class Screen extends Component<ScreenProps> {
   private canvas?: HTMLCanvasElement;
   private canvasContext?: CanvasRenderingContext2D | null;
   private imageData?: ImageData;
@@ -156,5 +156,3 @@ class Screen extends Component<ScreenProps> {
     this.props.onMouseDown(x, y);
   };
 }
-
-export default Screen;

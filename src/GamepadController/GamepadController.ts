@@ -1,60 +1,20 @@
 import { ButtonKey, ControllerKey } from "jsnes";
-import { getLogger } from "./utils/logging";
-import { GamepadButtonDownHandler, PromptButtonHandler } from "./ControlsModal";
+import { getLogger } from "../utils";
+import {
+  GamepadButtonDownHandler,
+  PromptButtonHandler
+} from "../ControlsModal";
+import {
+  ButtonCallbackProps,
+  Gamepads,
+  StartPollingResult
+} from "./GamepadController.types";
 
 // Silence logging because the polling loop is very noisy
 // if you need/want to see stuff in here
 // switch the LOGGER definitions below
 const LOGGER = getLogger("GamepadController", true);
 // const LOGGER = getLogger("GamepadController");
-
-type ButtonTypes = "axis" | "button";
-
-/**
- * A set of gamepads and their configurations
- */
-export interface Gamepads {
-  /** An array of names of the gamepads, can be used to index the configs*/
-  playerGamepadId: Array<string | null>;
-  /** Keys in the configs map to the entries in the playerGamepadId array */
-  configs: GamepadConfig;
-}
-
-/**
- * A map of controllerIDs to the button configurations for that gamepad
- */
-export interface GamepadConfig {
-  [key: string]: GamepadButtonConfig;
-}
-
-export interface GamepadButtonConfig {
-  buttons: NesGamepadButton[];
-}
-
-/**
- * A button on the gamepad and its state
- */
-export interface NesGamepadButton {
-  /** The type of the button: "axis" or "button" */
-  type: ButtonTypes;
-  /** The NES control pad button that this is bound to **/
-  buttonId: ButtonKey;
-  /** The gamepad button */
-  code: number;
-  /** Axis can be analog, so track a number based on how far it's been pressed */
-  value: number;
-}
-
-export interface ButtonCallbackProps {
-  gamepadId: string;
-  type: ButtonTypes;
-  code: number;
-  value?: number;
-}
-
-export interface StartPollingResult {
-  stop: () => void;
-}
 
 interface GamepadControllerOptions {
   onButtonDown: (controller: ControllerKey, button: ButtonKey) => void;
@@ -76,7 +36,7 @@ interface GamepadState {
 /**
  *
  */
-export default class GamepadController {
+export class GamepadController {
   private readonly onButtonDown: (
     controller: ControllerKey,
     button: ButtonKey

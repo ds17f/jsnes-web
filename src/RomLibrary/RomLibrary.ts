@@ -1,4 +1,4 @@
-import { getLogger } from "./utils/logging";
+import { getLogger } from "../utils";
 import { Key } from "react";
 const LOGGER = getLogger("RomLibrary");
 
@@ -33,7 +33,7 @@ export interface RomInfo {
   added: number;
 }
 
-const RomLibrary = {
+export const RomLibrary = {
   getRomInfoByHash: function(hash: Key): RomInfo | undefined {
     LOGGER.info(`Getting rom info for: ${hash}`);
     const loadedRomInfo = this.load().find(rom => rom.hash === hash);
@@ -94,5 +94,3 @@ const RomLibrary = {
     );
   }
 };
-
-export default RomLibrary;

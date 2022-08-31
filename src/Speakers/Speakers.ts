@@ -1,7 +1,7 @@
 import { RingBuffer } from "ring-buffer-ts";
-import { handleError } from "./utils/utils";
+import { handleError } from "../utils";
 
-import { getLogger } from "./utils/logging";
+import { getLogger } from "../utils";
 const LOGGER = getLogger("Speakers");
 
 type BufferUnderRunHandler = (actualSize: number, desiredSize: number) => void;
@@ -10,7 +10,7 @@ interface SpeakerProps {
   onBufferUnderRun: BufferUnderRunHandler;
 }
 
-export default class Speakers {
+export class Speakers {
   private readonly bufferCapacity: number;
   private readonly onBufferUnderrun: BufferUnderRunHandler;
   private readonly buffer: RingBuffer<number>;

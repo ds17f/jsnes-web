@@ -8,28 +8,26 @@ import {
   Table
 } from "reactstrap";
 import { ButtonKey, Controller, ControllerKey } from "jsnes";
-import ControlMapperRow from "./ControlMapperRow";
+import { ControlMapperRow } from "../ControlMapperRow";
 import {
   ButtonCallbackProps,
   GamepadConfig,
   Gamepads,
   NesGamepadButton
-} from "./GamepadController";
-import { KeyboardMapping } from "./KeyboardController";
-import { getLogger } from "./utils/logging";
+} from "../GamepadController";
+import { KeyboardMapping } from "../KeyboardController";
+import { getLogger } from "../utils";
+import {
+  GamepadButtonDownHandler,
+  PromptButtonHandler
+} from "./ControlsModal.types";
 
 const LOGGER = getLogger("ControlsModal");
 
 const GAMEPAD_ICON = "../img/nes_controller.png";
 const KEYBOARD_ICON = "../img/keyboard.png";
 
-export type PromptButtonHandler = (
-  buttonDownHandler: GamepadButtonDownHandler | null
-) => void;
-
-export type GamepadButtonDownHandler = (callback: ButtonCallbackProps) => void;
-
-interface ControlsModalProps {
+export interface ControlsModalProps {
   gamepadConfig: Gamepads;
   keys: KeyboardMapping;
   setKeys: (keys: KeyboardMapping) => void;
@@ -38,7 +36,8 @@ interface ControlsModalProps {
   isOpen?: boolean;
   toggle?: MouseEventHandler<HTMLButtonElement>;
 }
-interface ControlsModalState {
+
+export interface ControlsModalState {
   gamepadConfig: Gamepads;
   keys: KeyboardMapping;
   modified: boolean;
@@ -48,7 +47,10 @@ interface ControlsModalState {
   button?: [ControllerKey, ButtonKey];
 }
 
-class ControlsModal extends Component<ControlsModalProps, ControlsModalState> {
+export class ControlsModal extends Component<
+  ControlsModalProps,
+  ControlsModalState
+> {
   constructor(props: ControlsModalProps) {
     super(props);
     this.handleKeyDown = this.handleKeyDown.bind(this);
@@ -323,5 +325,3 @@ class ControlsModal extends Component<ControlsModalProps, ControlsModalState> {
     );
   }
 }
-
-export default ControlsModal;

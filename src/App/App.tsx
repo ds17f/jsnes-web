@@ -1,10 +1,10 @@
-import React, { Component, ComponentProps, ErrorInfo } from "react";
+import React, { Component, ErrorInfo } from "react";
 import GoogleAnalytics from "react-ga";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import ListPage from "./ListPage";
-import RunPage from "./RunPage";
-import config from "./config";
-import { handleError } from "./utils/utils";
+import { ListPage } from "../ListPage";
+import { RunPage } from "../RunPage";
+import { config } from "../config";
+import { handleError } from "../utils";
 import "./App.css";
 
 interface AppProps {}
@@ -12,7 +12,7 @@ interface AppState {
   error: any;
 }
 
-class App extends Component<AppProps, AppState> {
+export class App extends Component<AppProps, AppState> {
   constructor(props: AppProps) {
     super(props);
     this.state = { error: null };
@@ -60,5 +60,3 @@ class App extends Component<AppProps, AppState> {
     return null;
   };
 }
-
-export default App;

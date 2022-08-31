@@ -6,46 +6,54 @@ import React, {
 } from "react";
 import { Button, Progress } from "reactstrap";
 import { Link, Params, useLocation, useParams } from "react-router-dom";
-
-import config, { RomConfig } from "./config";
-import ControlsModal from "./ControlsModal";
-import Emulator from "./Emulator";
-import RomLibrary from "./RomLibrary";
-import { loadBinary } from "./utils/utils";
-import { getLogger } from "./utils/logging";
 import * as ReactRouter from "react-router-dom";
+
+import { config, RomConfig } from "../config";
+import { ControlsModal } from "../ControlsModal";
+import { Emulator } from "../Emulator";
+import { RomLibrary } from "../RomLibrary";
+import { loadBinary } from "../utils";
+import { getLogger } from "../utils";
+import { LOCAL_ROM_FLAG, ProgressHandler } from "./RunPage.types";
 
 import "./RunPage.css";
 
 const LOGGER = getLogger("RunPage");
 
-export const LOCAL_ROM_FLAG = "local-";
-
-function withParams(Component: ComponentType<any>) {
-  return (props: ComponentProps<any>) => (
-    <Component {...props} params={useParams()} location={useLocation()} />
-  );
-}
-
-export type ProgressHandler = (e: ProgressEvent) => void;
-
+/**
+ * Props for RunPage
+ */
 interface RunPageProps {
+  /** React Router Dom `useParams` result */
   params: Readonly<Params>;
+  /** React Router Dom `useLocation` result */
   location: ReactRouter.Location;
 }
+
+/**
+ * State for RunPage
+ */
 interface RunPageState {
-  romName: ReactElement | string | null;
-  romData: string | null; // TODO: Is this really a string?
+  /** Content displayed at the top of the RunPage when the Rom is loaded */
+  romName: ReactElement | string | null; //TODO: Can we say more about this?
+  /** The ROM as string data */
+  romData: string | null;
+  /** True when the ROM is running in the emulator */
   running: boolean;
+  /** True when the ROM is paused in the emulator */
   paused: boolean;
+  /** True when the controlsModal is open */
   controlsModalOpen: boolean;
+  /** True when the ROM is loading */
   loading: boolean;
+  /** The percent complete as the ROM is loading */
   loadedPercent: number;
+  /** The error message to display on the RunPage */
   error: string | null;
 }
 
 /*
- * The UI for the emulator. Also responsible for loading ROM from URL or file.
+ * The UI for the emulator. Also, responsible for loading ROM from URL or file.
  */
 class RunPage extends Component<RunPageProps, RunPageState> {
   private emulator?: Emulator | null;
@@ -300,4 +308,17 @@ class RunPage extends Component<RunPageProps, RunPageState> {
   };
 }
 
-export default withParams(RunPage);
+/**
+ * HoC to add router params and location to component
+ * @param Component
+ */
+function withParams(Component: ComponentType<any>) {
+  return (props: ComponentProps<any>) => (
+    <Component {...props} params={useParams()} location={useLocation()} />
+  );
+}
+
+// Add params and location to RunPage
+const RunPageWithParams = withParams(RunPage);
+// Export the version of RunPage with Params and Location
+export { RunPageWithParams as RunPage };

@@ -2,13 +2,13 @@ import Raven from "raven-js";
 import React, { Component } from "react";
 import { NES } from "jsnes";
 
-import FrameTimer from "./FrameTimer";
-import GamepadController, { StartPollingResult } from "./GamepadController";
-import KeyboardController from "./KeyboardController";
-import Screen from "./Screen";
-import Speakers from "./Speakers";
+import { FrameTimer } from "../FrameTimer";
+import { GamepadController, StartPollingResult } from "../GamepadController";
+import { KeyboardController } from "../KeyboardController";
+import { Screen } from "../Screen";
+import { Speakers } from "../Speakers";
 
-import { getLogger } from "./utils/logging";
+import { getLogger } from "../utils";
 const LOGGER = getLogger("Emulator");
 
 interface EmulatorProps {
@@ -22,7 +22,7 @@ interface EmulatorProps {
  * The only UI is a canvas element. It assumes it is a singleton in various ways
  * (binds to window, keyboard, speakers, etc).
  */
-class Emulator extends Component<EmulatorProps> {
+export class Emulator extends Component<EmulatorProps> {
   public gamepadController?: GamepadController; // TODO: private
   public keyboardController?: KeyboardController; // TODO: private
 
@@ -188,5 +188,3 @@ class Emulator extends Component<EmulatorProps> {
     this.screen!.fitInParent();
   }
 }
-
-export default Emulator;
