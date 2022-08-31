@@ -245,7 +245,7 @@ class RunPage extends Component<RunPageProps, RunPageState> {
         if (err) {
           this.setState({ error: `Error loading ROM: ${err.message}` });
         } else if (!nesRomString) {
-          this.setState({error: `Error loading ROM: empty rom data`});
+          this.setState({ error: `Error loading ROM: empty rom data` });
         } else {
           this.handleLoaded(nesRomString);
         }
@@ -264,7 +264,7 @@ class RunPage extends Component<RunPageProps, RunPageState> {
     reader.onload = () => {
       this.currentRequest = null;
       if (!reader.result) {
-        this.setState({error: `Error loading ROM from file: no data read`});
+        this.setState({ error: `Error loading ROM from file: no data read` });
         return;
       }
       this.handleLoaded(reader.result.toString());

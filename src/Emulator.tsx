@@ -3,7 +3,7 @@ import React, { Component } from "react";
 import { NES } from "jsnes";
 
 import FrameTimer from "./FrameTimer";
-import GamepadController, {StartPollingResult} from "./GamepadController";
+import GamepadController, { StartPollingResult } from "./GamepadController";
 import KeyboardController from "./KeyboardController";
 import Screen from "./Screen";
 import Speakers from "./Speakers";
@@ -31,7 +31,7 @@ class Emulator extends Component<EmulatorProps> {
   private nes?: NES;
   private frameTimer?: FrameTimer;
   private gamepadPolling?: StartPollingResult;
-  private fpsInterval?: NodeJS.Timer
+  private fpsInterval?: NodeJS.Timer;
 
   render() {
     return (

@@ -57,7 +57,8 @@ class ControlsModal extends Component<ControlsModalProps, ControlsModalState> {
 
     LOGGER.info("initialize gamepad with defaults");
     const gamepadConfig = this.props.gamepadConfig || {};
-    gamepadConfig.playerGamepadId = this.props.gamepadConfig.playerGamepadId || [null, null];
+    gamepadConfig.playerGamepadId = this.props.gamepadConfig
+      .playerGamepadId || [null, null];
     gamepadConfig.configs = this.props.gamepadConfig.configs || {};
     LOGGER.info("initialize icons");
     const controllerIcon = this.props.gamepadConfig.playerGamepadId.map(

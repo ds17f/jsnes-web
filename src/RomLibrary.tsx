@@ -3,7 +3,7 @@ import { Key } from "react";
 const LOGGER = getLogger("RomLibrary");
 
 const pFileReader = function(file: File): Promise<ProgressEvent<FileReader>> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const reader = new FileReader();
     reader.onload = resolve;
     reader.readAsBinaryString(file);
@@ -35,7 +35,7 @@ export interface RomInfo {
 
 const RomLibrary = {
   getRomInfoByHash: function(hash: Key): RomInfo | undefined {
-    LOGGER.info(`Getting rom info for: ${hash}`)
+    LOGGER.info(`Getting rom info for: ${hash}`);
     const loadedRomInfo = this.load().find(rom => rom.hash === hash);
     LOGGER.debug({ loadedRomInfo });
     return loadedRomInfo;
@@ -45,7 +45,7 @@ const RomLibrary = {
       .then(function(readFile) {
         const byteString = readFile.target?.result;
         if (!byteString) {
-          throw new Error("Failed reading file target")
+          throw new Error("Failed reading file target");
         }
         return hashFile(byteString.toString()).then((hash: string) => {
           return { hash, byteString };
@@ -75,14 +75,14 @@ const RomLibrary = {
       LOGGER.info("No 'savedRomInfo' found in localStorage");
       return [];
     }
-    LOGGER.info({localData});
+    LOGGER.info({ localData });
     const savedRomInfo = JSON.parse(localData);
     if (!savedRomInfo) {
       LOGGER.info("'savedRomInfo' found but was empty");
       return [];
     }
 
-    LOGGER.debug({savedRomInfo});
+    LOGGER.debug({ savedRomInfo });
     return savedRomInfo;
   },
   delete: function(hash: Key) {

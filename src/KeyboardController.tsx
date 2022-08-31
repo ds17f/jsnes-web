@@ -1,4 +1,4 @@
-import {ButtonKey, Controller, ControllerKey} from "jsnes";
+import { ButtonKey, Controller, ControllerKey } from "jsnes";
 
 /**
  * Represents a single entry for a key on the keyboard
@@ -33,13 +33,19 @@ const DEFAULT_KEYBOARD_MAPPING: KeyboardMapping = {
   102: [2, Controller.BUTTON_RIGHT, "Num-6"] // Num-6
 };
 interface KeyboardControllerOptions {
-  onButtonDown: (controller: ControllerKey, button: ButtonKey) => void
-  onButtonUp: (controller: ControllerKey, button: ButtonKey) => void
+  onButtonDown: (controller: ControllerKey, button: ButtonKey) => void;
+  onButtonUp: (controller: ControllerKey, button: ButtonKey) => void;
 }
 
 export default class KeyboardController {
-  private readonly onButtonDown: (controller: ControllerKey, button: ButtonKey) => void;
-  private readonly onButtonUp: (controller: ControllerKey, button: ButtonKey) => void;
+  private readonly onButtonDown: (
+    controller: ControllerKey,
+    button: ButtonKey
+  ) => void;
+  private readonly onButtonUp: (
+    controller: ControllerKey,
+    button: ButtonKey
+  ) => void;
   public keys: KeyboardMapping | undefined;
 
   constructor(options: KeyboardControllerOptions) {
@@ -83,7 +89,9 @@ export default class KeyboardController {
    * @param e
    */
   handleKeyDown = (e: KeyboardEvent) => {
-    const key: KeyMapTuple | undefined = this.keys ? this.keys[e.keyCode] : undefined; // TODO: Consider using `code` instead as it is better supported but is a string
+    const key: KeyMapTuple | undefined = this.keys
+      ? this.keys[e.keyCode]
+      : undefined; // TODO: Consider using `code` instead as it is better supported but is a string
     if (key) {
       const [controller, button] = key;
       this.onButtonDown(controller, button);
@@ -96,7 +104,9 @@ export default class KeyboardController {
    * @param e
    */
   handleKeyUp = (e: KeyboardEvent) => {
-    const key: KeyMapTuple | undefined = this.keys ? this.keys[e.keyCode] : undefined; // TODO: Consider using `code` instead as it is better supported but is a string
+    const key: KeyMapTuple | undefined = this.keys
+      ? this.keys[e.keyCode]
+      : undefined; // TODO: Consider using `code` instead as it is better supported but is a string
     if (key) {
       const [controller, button] = key;
       this.onButtonUp(controller, button);

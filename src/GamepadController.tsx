@@ -1,6 +1,6 @@
 import { ButtonKey, ControllerKey } from "jsnes";
 import { getLogger } from "./utils/logging";
-import {GamepadButtonDownHandler, PromptButtonHandler} from "./ControlsModal";
+import { GamepadButtonDownHandler, PromptButtonHandler } from "./ControlsModal";
 
 // Silence logging because the polling loop is very noisy
 // if you need/want to see stuff in here
@@ -53,7 +53,7 @@ export interface ButtonCallbackProps {
 }
 
 export interface StartPollingResult {
-  stop: () => void
+  stop: () => void;
 }
 
 interface GamepadControllerOptions {
@@ -340,7 +340,6 @@ export default class GamepadController {
       console.log("Failed to set gamepadConfig in localStorage");
     }
   };
-
 
   startPolling = (): StartPollingResult => {
     // @ts-ignore navigator.webkitGetGamepads isn't a thing?

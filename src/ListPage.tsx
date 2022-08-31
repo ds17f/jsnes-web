@@ -121,13 +121,13 @@ class ListPage extends Component<ListPageProps, ListPageState> {
   }
 
   deleteRom = (hash: Key) => {
-    LOGGER.info(`Delete rom: ${hash} from library`)
+    LOGGER.info(`Delete rom: ${hash} from library`);
     RomLibrary.delete(hash);
     this.updateLibrary();
   };
 
   updateLibrary = () => {
-    LOGGER.info("Loading rom library")
+    LOGGER.info("Loading rom library");
     this.setState({ romLibrary: RomLibrary.load() });
   };
 
