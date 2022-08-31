@@ -41,9 +41,11 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "prettier-check src/**/*.js && react-scripts test",
+    "test": "$npm_execpath format-check && react-scripts test",
+    "test-only": "react-scripts test",
     "eject": "react-scripts eject",
-    "format": "prettier --write src/**/*.js",
+    "format-check": "prettier-check \"**/*.+(js|ts|jsx|tsx|json)\"",
+    "format": "prettier --write \"**/*.+(js|ts|jsx|tsx|json)\"",
     "publish": "gh-pages --dist build"
   },
   "browserslist": [

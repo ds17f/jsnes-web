@@ -8,8 +8,8 @@ describe("RunPage", () => {
     const root = createRoot(div);
 
     root.render(
-      <Routes location="/roms/foo.nes" context={{}}>
-        <Route exact path="/run/:rom" component={RunPage} />
+      <Routes location="/roms/foo.nes">
+        <Route path="/run/:rom" element={<RunPage />} />
       </Routes>
     );
   });

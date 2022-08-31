@@ -7,8 +7,8 @@ describe("ListPage", () => {
     const div = document.createElement("div");
     const root = createRoot(div)
     root.render(
-      <Routes location="/" context={{}}>
-        <Route exact path="/" component={ListPage} />
+      <Routes location="/">
+        <Route path="/" element={<ListPage />} />
       </Routes>
     );
   });
