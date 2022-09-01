@@ -2,6 +2,12 @@ import { ButtonKey } from "jsnes";
 
 export type ButtonTypes = "axis" | "button";
 
+export type ButtonCallback = (callback: ButtonCallbackProps) => void;
+
+export type PromptButtonHandler = (
+  buttonDownHandler: ButtonCallback | null
+) => void;
+
 /**
  * A set of gamepads and their configurations
  */

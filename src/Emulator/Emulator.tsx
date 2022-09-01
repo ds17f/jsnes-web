@@ -2,11 +2,11 @@ import Raven from "raven-js";
 import React, { Component } from "react";
 import { NES } from "jsnes";
 
-import { FrameTimer } from "../FrameTimer";
-import { GamepadController, StartPollingResult } from "../GamepadController";
-import { KeyboardController } from "../KeyboardController";
-import { Screen } from "../Screen";
-import { Speakers } from "../Speakers";
+import { FrameTimer } from "./FrameTimer";
+import { GamepadController, StartPollingResult } from "./GamepadController";
+import { KeyboardController } from "./KeyboardController";
+import { Screen } from "./Screen";
+import { Speakers } from "./Speakers";
 
 import { getLogger } from "../utils";
 const LOGGER = getLogger("Emulator");

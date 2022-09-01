@@ -1,7 +1,2 @@
-import { ButtonCallbackProps } from "../GamepadController";
+import { ButtonCallback } from "../Emulator";
 
-export type PromptButtonHandler = (
-  buttonDownHandler: GamepadButtonDownHandler | null
-) => void;
-
-export type GamepadButtonDownHandler = (callback: ButtonCallbackProps) => void;

@@ -1,4 +1,4 @@
-import { getLogger } from "../utils";
+import { getLogger } from "../../utils";
 const LOGGER = getLogger("FrameTimer");
 
 const FPS = 60.098;

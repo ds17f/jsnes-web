@@ -1,7 +1,7 @@
 import React, { Component, MouseEventHandler } from "react";
 import "./Screen.css";
 
-import { getLogger } from "../utils";
+import { getLogger } from "../../utils";
 const LOGGER = getLogger("Screen");
 
 const SCREEN_WIDTH: number = 256;

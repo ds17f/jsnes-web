@@ -10,17 +10,15 @@ import {
 import { ButtonKey, Controller, ControllerKey } from "jsnes";
 import { ControlMapperRow } from "../ControlMapperRow";
 import {
+  ButtonCallback,
   ButtonCallbackProps,
   GamepadConfig,
   Gamepads,
-  NesGamepadButton
-} from "../GamepadController";
-import { KeyboardMapping } from "../KeyboardController";
-import { getLogger } from "../utils";
-import {
-  GamepadButtonDownHandler,
+  NesGamepadButton,
   PromptButtonHandler
-} from "./ControlsModal.types";
+} from "../Emulator";
+import { KeyboardMapping } from "../Emulator";
+import { getLogger } from "../utils";
 
 const LOGGER = getLogger("ControlsModal");
 
@@ -110,7 +108,7 @@ export class ControlsModal extends Component<
     document.addEventListener("keydown", this.handleKeyDown);
   }
 
-  handleGamepadButtonDown: GamepadButtonDownHandler = (
+  handleGamepadButtonDown: ButtonCallback = (
     buttonInfo: ButtonCallbackProps
   ) => {
     // Clear the key that we are resetting

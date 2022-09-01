@@ -1,10 +1,11 @@
 import React, { Component } from "react";
 import {
+  KeyboardMapping,
   GamepadButtonConfig,
   NesGamepadButton,
   Gamepads
-} from "../GamepadController";
-import { KeyboardMapping } from "../KeyboardController";
+} from "../Emulator";
+import {  } from "../Emulator";
 import { ButtonKey, ControllerKey } from "jsnes";
 
 import { getLogger } from "../utils";
