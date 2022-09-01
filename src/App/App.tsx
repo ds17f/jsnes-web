@@ -1,20 +1,26 @@
-import React, { Component, ErrorInfo } from "react";
+import React, { Component, ComponentProps, ErrorInfo } from "react";
 import GoogleAnalytics from "react-ga";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+
 import { ListPage } from "../ListPage";
 import { RunPage } from "../RunPage";
+
 import { config } from "../config";
 import { handleError } from "../utils";
+
 import "./App.css";
 
-interface AppProps {}
+/**
+ * App State
+ */
 interface AppState {
-  error: any;
+  /** Any uncaught exceptions in the App */
+  error: Error | null;
 }
 
-export class App extends Component<AppProps, AppState> {
-  constructor(props: AppProps) {
-    super(props);
+export class App extends Component<{}, AppState> {
+  constructor() {
+    super({});
     this.state = { error: null };
     if (config.GOOGLE_ANALYTICS_CODE) {
       GoogleAnalytics.initialize(config.GOOGLE_ANALYTICS_CODE);

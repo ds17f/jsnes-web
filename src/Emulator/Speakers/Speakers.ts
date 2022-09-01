@@ -1,7 +1,6 @@
 import { RingBuffer } from "ring-buffer-ts";
-import { handleError } from "../utils";
+import { handleError, getLogger } from "../../utils";
 
-import { getLogger } from "../utils";
 const LOGGER = getLogger("Speakers");
 
 type BufferUnderRunHandler = (actualSize: number, desiredSize: number) => void;

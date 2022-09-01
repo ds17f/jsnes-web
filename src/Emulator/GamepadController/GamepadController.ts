@@ -1,12 +1,10 @@
 import { ButtonKey, ControllerKey } from "jsnes";
-import { getLogger } from "../utils";
+import { getLogger } from "../../utils";
 import {
-  GamepadButtonDownHandler,
-  PromptButtonHandler
-} from "../ControlsModal";
-import {
+  ButtonCallback,
   ButtonCallbackProps,
   Gamepads,
+  PromptButtonHandler,
   StartPollingResult
 } from "./GamepadController.types";
 
@@ -47,7 +45,7 @@ export class GamepadController {
   ) => void;
   /** Track the state of the gamepads */
   private readonly gamepadState: GamepadState[];
-  private buttonCallback: GamepadButtonDownHandler | null;
+  private buttonCallback: ButtonCallback | null;
   public gamepadConfig: Gamepads | undefined;
 
   constructor(options: GamepadControllerOptions) {
@@ -138,7 +136,7 @@ export class GamepadController {
            */
           const processAxisChange = (
             axisState: number,
-            buttonCallback: (props: ButtonCallbackProps) => void
+            buttonCallback: ButtonCallback
           ) => {
             const axis = gamepad.axes[code];
             const previousAxis = previousGamepad.axes[code];
