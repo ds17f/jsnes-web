@@ -1,7 +1,7 @@
 import Pino from "pino";
 
 const DEFAULT_LOG_LEVEL =
-  process.env.NODE_ENV === "production" ? "fatal" : "info";
+  process.env.NODE_ENV === "production" || "test" ? "fatal" : "info";
 
 /**
  * Get a configured logger
@@ -28,24 +28,48 @@ const loggers: {
   [key: string]: { parentLogger: Pino.Logger; childLogger: Pino.Logger };
 } = {};
 
-// @ts-ignore
-window["setLogLevels"] = (level: string) => {
+/**
+ * Sets the level for all known loggers
+ * @param level
+ * @param silent
+ */
+export const setLogLevels = (level: string, silent: boolean) => {
   Object.values(loggers).forEach(logPair => {
-    console.log(logPair.parentLogger.level);
+    !silent && console.log(logPair.parentLogger.level);
     logPair.parentLogger.level = level;
-    console.log(logPair.parentLogger.level);
+    !silent && console.log(logPair.parentLogger.level);
   });
 };
-// @ts-ignore
-window["getLogLevels"] = () => {
+
+/**
+ * Prints the log levels for all loggers to the console
+ */
+export const getLogLevels = () => {
   Object.values(loggers).forEach(logPair => {
     console.log(logPair.parentLogger.level);
   });
 };
 
-// @ts-ignore
-window["setLogLevel"] = (service: string, level: string) => {
+/**
+ * Sets the log level for a specific logger
+ * @param service
+ * @param level
+ */
+const setLogLevel = (service: string, level: string) => {
   loggers[service].parentLogger.level = level;
 };
+
+/**
+ * returns a specific parent logger
+ * @param service
+ */
+export const getLogLevel =  (service: string) => loggers[service].parentLogger;
+
 // @ts-ignore
-window["getLogLevel"] = (service: string) => loggers[service].parentLogger;
+window["setLogLevels"] = setLogLevels
+// @ts-ignore
+window["getLogLevels"] = getLogLevels
+// @ts-ignore
+window["setLogLevel"] = setLogLevel
+// @ts-ignore
+window["getLogLevel"] = getLogLevel

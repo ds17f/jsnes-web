@@ -19,8 +19,8 @@ interface AppState {
 }
 
 export class App extends Component<{}, AppState> {
-  constructor() {
-    super({});
+  constructor(props: {} = {}) {
+    super(props);
     this.state = { error: null };
     if (config.GOOGLE_ANALYTICS_CODE) {
       GoogleAnalytics.initialize(config.GOOGLE_ANALYTICS_CODE);
@@ -40,18 +40,16 @@ export class App extends Component<{}, AppState> {
       );
     }
     return (
-      <BrowserRouter basename={config.BASENAME()}>
-        <div className="App">
-          <Routes>
-            <Route path="/" element={<ListPage />} />
-            <Route path="/run/:slug" element={<RunPage />} />
-            <Route path="/run" element={<RunPage />} />
-            {/* TODO: Need to figure out how to get GA working with ReactRouter6
-            <Route path="/" element={this.recordPageview} />
-            */}
-          </Routes>
-        </div>
-      </BrowserRouter>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<ListPage />} />
+          <Route path="/run/:slug" element={<RunPage />} />
+          <Route path="/run" element={<RunPage />} />
+          {/* TODO: Need to figure out how to get GA working with ReactRouter6
+          <Route path="/" element={this.recordPageview} />
+          */}
+        </Routes>
+      </div>
     );
   }
 
