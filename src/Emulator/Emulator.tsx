@@ -6,7 +6,7 @@ import { FrameTimer } from "./FrameTimer";
 import { GamepadController, StartPollingResult } from "./GamepadController";
 import { KeyboardController } from "./KeyboardController";
 import { Screen } from "./Screen";
-import { Speakers } from "./Speakers";
+import { AudioBuffer } from "./Speakers";
 
 import { getLogger } from "../utils";
 const LOGGER = getLogger("Emulator");
@@ -27,11 +27,16 @@ export class Emulator extends Component<EmulatorProps> {
   public keyboardController?: KeyboardController; // TODO: private
 
   private screen?: Screen;
-  private speakers?: Speakers;
+  private speakers?: AudioBuffer;
   private nes?: NES;
   private frameTimer?: FrameTimer;
   private gamepadPolling?: StartPollingResult;
   private fpsInterval?: NodeJS.Timer;
+
+  constructor(props: EmulatorProps) {
+    super(props)
+    this.onAudioBufferUnderrun = this.onAudioBufferUnderrun.bind(this)
+  }
 
   render() {
     return (
@@ -53,43 +58,23 @@ export class Emulator extends Component<EmulatorProps> {
     );
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     // Initial layout
     this.fitInParent();
 
-    this.speakers = new Speakers({
-      onBufferUnderRun: (actualSize: number, desiredSize: number) => {
-        if (this.props.paused) {
-          return;
-        }
-        // Skip a video frame so audio remains consistent. This happens for
-        // a variety of reasons:
-        // - Frame rate is not quite 60fps, so sometimes buffer empties
-        // - Page is not visible, so requestAnimationFrame doesn't get fired.
-        //   In this case emulator still runs at full speed, but timing is
-        //   done by audio instead of requestAnimationFrame.
-        // - System can't run emulator at full speed. In this case it'll stop
-        //    firing requestAnimationFrame.
-        LOGGER.trace(
-          "Buffer underrun, running another frame to try and catch up"
-        );
-
-        this.frameTimer!.generateFrame();
-        // desiredSize will be 2048, and the NES produces 1468 samples on each
-        // frame so we might need a second frame to be run. Give up after that
-        // though -- the system is not catching up
-        if (this.speakers!.bufferSize < desiredSize) {
-          LOGGER.trace("Still buffer underrun, running a second frame");
-          this.frameTimer!.generateFrame();
-        }
-      }
+    // We need to make the speakers first,
+    // so we can use them in the NES
+    this.speakers = new AudioBuffer({
+      onBufferUnderrun: this.onAudioBufferUnderrun
     });
 
+    // make a dedicated logger to listen to status updates from the NES
+    const nesLogger = getLogger("NES")
     this.nes = new NES({
       onFrame: this.screen!.setBuffer,
-      onStatusUpdate: LOGGER.info, // TODO: Consider sending a dedicated logger for NES
-      onAudioSample: this.speakers.writeSample,
-      sampleRate: this.speakers.getSampleRate()
+      onStatusUpdate: nesLogger.debug, // Assume these are debug level messages
+      onAudioSample: this.speakers.writeSampleToBuffer,
+      sampleRate: this.speakers.sampleRate
     });
 
     // @ts-ignore For debugging. (["nes"] instead of .nes to avoid VS Code type errors.)
@@ -131,7 +116,7 @@ export class Emulator extends Component<EmulatorProps> {
     );
 
     this.nes.loadROM(this.props.romData);
-    this.start();
+    await this.start();
   }
 
   componentWillUnmount() {
@@ -186,5 +171,36 @@ export class Emulator extends Component<EmulatorProps> {
    */
   fitInParent() {
     this.screen!.fitInParent();
+  }
+
+  /**
+   * Handles a buffer underrun event from the Speakers
+   *
+   *
+   * @param samplesInBuffer
+   * @param totalRequiredBytes
+   */
+  onAudioBufferUnderrun(samplesInBuffer: number, totalRequiredBytes: number) {
+    if (this.props.paused) {
+      return;
+    }
+    // Skip a video frame so audio remains consistent. This happens for
+    // a variety of reasons:
+    // - Frame rate is not quite 60fps, so sometimes buffer empties
+    // - Page is not visible, so requestAnimationFrame doesn't get fired.
+    //   In this case emulator still runs at full speed, but timing is
+    //   done by audio instead of requestAnimationFrame.
+    // - System can't run emulator at full speed. In this case it'll stop
+    //    firing requestAnimationFrame.
+    LOGGER.trace("Buffer underrun, running another frame to try and catch up");
+
+    this.frameTimer!.generateFrame();
+    // totalRequiredBytes will be 2048, and the NES produces 1468 samples on each
+    // frame so we might need a second frame to be run. Give up after that
+    // though -- the system is not catching up
+    if (this.speakers!.amountInBuffer < totalRequiredBytes) {
+      LOGGER.trace("Still buffer underrun, running a second frame");
+      this.frameTimer!.generateFrame();
+    }
   }
 }
