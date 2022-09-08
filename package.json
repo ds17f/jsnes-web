@@ -27,8 +27,17 @@
   },
   "devDependencies": {
     "@svgr/webpack": "^6.3.1",
+    "@typescript-eslint/eslint-plugin": "^5.36.2",
+    "@typescript-eslint/parser": "^5.36.2",
     "canvas": "^2.9.3",
-    "prettier": "^1.16.4",
+    "eslint": "^8.23.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-import-resolver-typescript": "^3.5.1",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-react": "^7.31.7",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "prettier": "^2.7.1",
     "prettier-check": "^2.0.0",
     "react-scripts": "5.0.1"
   },
@@ -41,6 +50,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx,json}\"",
+    "lint:fix": "eslint --fix \"src/**/*.{jsx,ts,tsx,json}\"",
     "test": "$npm_execpath format-check && react-scripts test",
     "test-only": "react-scripts test",
     "eject": "react-scripts eject",
