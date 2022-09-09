@@ -213,7 +213,7 @@ export class AudioBuffer {
   writeSampleToBuffer = (left: number, right: number) => {
     if (this.amountInBuffer >= this.bufferCapacity) {
       const removeAmountFromBuffer = INPUT_BUFFER_CAPACITY / 2;
-      LOGGER.info(
+      LOGGER.debug(
         `Audio Buffer overrun, dumping ${removeAmountFromBuffer} samples from head of buffer`
       );
       this.buffer.remove(0, removeAmountFromBuffer);
@@ -262,7 +262,7 @@ export class AudioBuffer {
 
       // ignore empty samples... assume audio has just stopped
       if (samples.length === 0) {
-        LOGGER.info(
+        LOGGER.debug(
           `Buffer underrun (needed ${audioChannelSize}, got ${samples.length})`
         );
       }
