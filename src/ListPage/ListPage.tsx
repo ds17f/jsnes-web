@@ -157,15 +157,21 @@ class ListPage extends Component<ListPageProps, ListPageState> {
   };
 }
 
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Add reactRouter useNavigate hooke result to the props of a component
  * @param Component
  */
 function withNavigate(Component: ComponentType<any>) {
-  return (props: ComponentProps<any>) => (
+  const wrappedComponent =  (props: ComponentProps<any>) => (
     <Component {...props} navigate={useNavigate()} />
   );
+  wrappedComponent.displayName = Component.displayName
+  return wrappedComponent
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
 // Make a ListPage component that has navigate
 const ListPageWithNavigate = withNavigate(ListPage);
 // Export the navigate one as ListPage

@@ -53,11 +53,11 @@ export class FrameTimer {
   onAnimationFrame = (time: number) => {
     this.requestAnimationFrame();
     // how many ms after 60fps frame time
-    let excess = time % this.interval;
+    const excess = time % this.interval;
 
     // newFrameTime is the current time aligned to 60fps intervals.
     // i.e. 16.6, 33.3, etc ...
-    let newFrameTime = time - excess;
+    const newFrameTime = time - excess;
 
     // first frame, do nothing
     if (!this.lastFrameTime) {
@@ -65,7 +65,7 @@ export class FrameTimer {
       return;
     }
 
-    let numFrames = Math.round(
+    const numFrames = Math.round(
       (newFrameTime - this.lastFrameTime) / this.interval
     );
 
@@ -83,7 +83,7 @@ export class FrameTimer {
     // onAnimationFrame call.
     // additional frames are generated but not displayed
     // until next frame draw
-    let timeToNextFrame = this.interval - excess;
+    const timeToNextFrame = this.interval - excess;
     for (let i = 1; i < numFrames; i++) {
       setTimeout(() => {
         this.generateFrame();

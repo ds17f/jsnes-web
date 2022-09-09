@@ -34,6 +34,8 @@ interface GamepadState {
  *
  */
 export class GamepadController {
+  public gamepadConfig: Gamepads | undefined;
+
   private readonly onButtonDown: (
     controller: ControllerKey,
     button: ButtonKey
@@ -45,7 +47,6 @@ export class GamepadController {
   /** Track the state of the gamepads */
   private readonly gamepadState: GamepadState[];
   private buttonCallback: ButtonCallback | null;
-  public gamepadConfig: Gamepads | undefined;
 
   constructor(options: GamepadControllerOptions) {
     this.onButtonDown = options.onButtonDown;
@@ -57,13 +58,12 @@ export class GamepadController {
   disableIfGamepadEnabled = (
     callback: (controller: ControllerKey, button: ButtonKey) => void
   ) => {
-    const self = this;
     return (playerId: ControllerKey, buttonId: ButtonKey) => {
-      if (!self.gamepadConfig) {
+      if (!this.gamepadConfig) {
         return callback(playerId, buttonId);
       }
 
-      const playerGamepadId = self.gamepadConfig.playerGamepadId;
+      const playerGamepadId = this.gamepadConfig.playerGamepadId;
       if (!playerGamepadId || !playerGamepadId[playerId - 1]) {
         // allow callback only if player is not associated to any gamepad
         return callback(playerId, buttonId);
@@ -90,10 +90,9 @@ export class GamepadController {
   poll = () => {
     LOGGER.debug("Polling Gamepad");
 
-    const gamepads: Gamepad[] = navigator.getGamepads
+    const gamepads: (Gamepad| null)[] = navigator.getGamepads
       ? navigator.getGamepads()
-      : // @ts-ignore webkitGetGamepads() isn't a thing?
-        navigator.webkitGetGamepads(); // TODO: what is webkitGetGamepads()
+      : navigator.webkitGetGamepads();
     LOGGER.debug("GamePads: ", JSON.stringify(gamepads));
 
     const usedPlayers = [];
@@ -299,9 +298,8 @@ export class GamepadController {
   };
 
   startPolling = (): StartPollingResult => {
-    // @ts-ignore navigator.webkitGetGamepads isn't a thing?
     if (!(navigator.getGamepads || navigator.webkitGetGamepads)) {
-      return { stop: () => {} };
+      return { stop: () => { return } };
     }
 
     let stopped = false;

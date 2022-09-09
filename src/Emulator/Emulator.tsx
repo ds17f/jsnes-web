@@ -92,14 +92,15 @@ export class Emulator extends Component<EmulatorProps> {
       sampleRate: this.speakers.getSampleRate()
     });
 
-    // @ts-ignore For debugging. (["nes"] instead of .nes to avoid VS Code type errors.)
-    window["nes"] = this.nes;
+
+    // Assign the emulator to the global window so that we can get it elsewhere
+    window.nes = this.nes;
 
     // Raven returns type Function, but the wrapped functions are the correct types
     // so just cast them down and things should be fine
     this.frameTimer = new FrameTimer({
-      onGenerateFrame: Raven.wrap(this.nes.frame) as () => {},
-      onWriteFrame: Raven.wrap(this.screen!.writeBuffer) as () => {}
+      onGenerateFrame: Raven.wrap(this.nes.frame) as () => void,
+      onWriteFrame: Raven.wrap(this.screen!.writeBuffer) as () => void
     });
 
     // Set up gamepad and keyboard
@@ -151,8 +152,7 @@ export class Emulator extends Component<EmulatorProps> {
     // Stop gamepad
     this.gamepadPolling!.stop();
 
-    // @ts-ignore For debugging. (["nes"] instead of .nes to avoid VS Code type errors.)
-    window["nes"] = undefined;
+    window.nes = undefined;
   }
 
   componentDidUpdate(prevProps: Readonly<EmulatorProps>) {

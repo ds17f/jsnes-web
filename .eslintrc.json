@@ -24,7 +24,8 @@
     ],
     "rules": {
         "@typescript-eslint/member-ordering": "error",
-        "@typescript-eslint/ban-ts-comment": "warn"
+        "@typescript-eslint/ban-ts-comment": "warn",
+        "@typescript-eslint/no-non-null-assertion": "off"
     },
     "settings": {
         "import/resolver": {

@@ -5,8 +5,8 @@ interface JsNesWebConfig {
   ROMS: {
     [key: string]: RomConfig;
   };
-  GOOGLE_ANALYTICS_CODE: any;
-  SENTRY_URI: any;
+  GOOGLE_ANALYTICS_CODE: string | undefined;
+  SENTRY_URI: string | undefined;
   BASENAME: () => string;
 }
 

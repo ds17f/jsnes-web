@@ -16,6 +16,12 @@ export class Speakers {
   private audioCtx?: AudioContext | null;
   private scriptNode?: ScriptProcessorNode | null;
 
+  constructor(props: SpeakerProps) {
+    this.onBufferUnderrun = props.onBufferUnderRun;
+    this.bufferCapacity = 8192;
+    this.buffer = new RingBuffer(this.bufferCapacity * 2);
+  }
+
   /**
    * Returns the amount of the buffer that is used
    */
@@ -23,18 +29,12 @@ export class Speakers {
     return this.buffer.getBufferLength();
   }
 
-  constructor(props: SpeakerProps) {
-    this.onBufferUnderrun = props.onBufferUnderRun;
-    this.bufferCapacity = 8192;
-    this.buffer = new RingBuffer(this.bufferCapacity * 2);
-  }
-
   getSampleRate() {
     if (!window.AudioContext) {
       return 44100;
     }
-    let myCtx = new window.AudioContext();
-    let sampleRate = myCtx.sampleRate;
+    const myCtx = new window.AudioContext();
+    const sampleRate = myCtx.sampleRate;
     myCtx.close();
     return sampleRate;
   }

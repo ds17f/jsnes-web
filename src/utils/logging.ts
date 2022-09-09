@@ -10,7 +10,7 @@ const DEFAULT_LOG_LEVEL =
  */
 export const getLogger = (
   service: string,
-  silenceOutput: boolean = false
+  silenceOutput = false
 ): Pino.Logger => {
   const parentLogger = Pino({
     level: silenceOutput ? "silent" : DEFAULT_LOG_LEVEL
@@ -28,24 +28,39 @@ const loggers: {
   [key: string]: { parentLogger: Pino.Logger; childLogger: Pino.Logger };
 } = {};
 
-// @ts-ignore
-window["setLogLevels"] = (level: string) => {
+/**
+ * Set the log levels of the loggers
+ * @param level
+ */
+window.setLogLevels = (level: string) => {
   Object.values(loggers).forEach(logPair => {
     console.log(logPair.parentLogger.level);
     logPair.parentLogger.level = level;
     console.log(logPair.parentLogger.level);
   });
 };
-// @ts-ignore
-window["getLogLevels"] = () => {
+
+/**
+ * Print the log levels of the loggers
+ * @param level
+ */
+window.printLogLevels = () => {
   Object.values(loggers).forEach(logPair => {
     console.log(logPair.parentLogger.level);
   });
 };
 
-// @ts-ignore
-window["setLogLevel"] = (service: string, level: string) => {
+/**
+ * Set the log level of a specific logger
+ * @param service
+ * @param level
+ */
+window.setLogLevel = (service: string, level: string) => {
   loggers[service].parentLogger.level = level;
 };
-// @ts-ignore
-window["getLogLevel"] = (service: string) => loggers[service].parentLogger;
+
+/**
+ * Print the log level of a specific logger
+ * @param service
+ */
+window.printLogLevel = (service: string) => loggers[service].parentLogger;
