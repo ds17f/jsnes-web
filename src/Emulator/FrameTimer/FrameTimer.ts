@@ -95,11 +95,11 @@ export class FrameTimer {
     // figure out how far past the interval we have gone
     // this is used to figure out where we should be (newFrameTime)
     // and where the next frame will be (timeToNextFrame)
-    let excess = time % this.interval;
+    const excess = time % this.interval;
 
     // newFrameTime is the current time aligned to 60fps intervals.
     // i.e. 16.6, 33.3, etc ...
-    let newFrameTime = time - excess;
+    const newFrameTime = time - excess;
 
     // we haven't rendered a frame ever
     if (!this.lastFrameTime) {
@@ -108,7 +108,7 @@ export class FrameTimer {
     }
 
     // how many frames have passed since the last frame we rendered
-    let numFrames = Math.round(
+    const numFrames = Math.round(
       (newFrameTime - this.lastFrameTime) / this.interval
     );
 

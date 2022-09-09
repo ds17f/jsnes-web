@@ -9,7 +9,7 @@ const LOGGER = getLogger("Speakers");
  * CDs provide uncompressed 16-bit stereo sound at 44.1 kHz.
  * Computer audio also frequently uses this frequency by default.
  */
-const DEFAULT_SAMPLE_RATE: number = 44100;
+const DEFAULT_SAMPLE_RATE = 44100;
 
 /**
  * Controls how frequently the browser's audioprocess event is
@@ -21,12 +21,12 @@ const DEFAULT_SAMPLE_RATE: number = 44100;
  *
  * @see https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/createScriptProcessor#parameters
  */
-const AUDIO_OUTPUT_BUFFER_SIZE: number = 1024;
+const AUDIO_OUTPUT_BUFFER_SIZE = 1024;
 
 /**
  * 2 channels for stereo audio
  */
-const NUMBER_OF_AUDIO_CHANNELS: number = 2;
+const NUMBER_OF_AUDIO_CHANNELS = 2;
 
 /**
  * Size of the internal ring buffer
@@ -97,13 +97,6 @@ export class AudioBuffer {
   }
 
   /**
-   * The total size of the internal ring buffer
-   */
-  private get bufferCapacity(): number {
-    return this.buffer.getSize();
-  }
-
-  /**
    * Returns the amount of the buffer that is used
    */
   public get amountInBuffer(): number {
@@ -119,12 +112,20 @@ export class AudioBuffer {
       return DEFAULT_SAMPLE_RATE;
     }
     if (!this._sampleRate) {
-      let myCtx = new window.AudioContext();
+      const myCtx = new window.AudioContext();
       this._sampleRate = myCtx.sampleRate;
       myCtx.close();
     }
     return this._sampleRate;
   }
+
+  /**
+   * The total size of the internal ring buffer
+   */
+  private get bufferCapacity(): number {
+    return this.buffer.getSize();
+  }
+
 
   /**
    * Creates a script processor set to the AUDIO_OUTPUT_BUFFER_SIZE
