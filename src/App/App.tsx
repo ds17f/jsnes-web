@@ -1,4 +1,4 @@
-import React, {Component, ComponentProps, ErrorInfo} from "react";
+import React, {Component, ErrorInfo} from "react";
 import GoogleAnalytics from "react-ga";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
@@ -18,7 +18,7 @@ interface AppState {
   error: Error | null;
 }
 
-export class App extends Component<{}, AppState> {
+export class App extends Component<Record<string, never>, AppState> {
   constructor() {
     super({});
     this.state = { error: null };

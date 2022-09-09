@@ -26,6 +26,8 @@ interface KeyboardControllerOptions {
 }
 
 export class KeyboardController {
+  public keys: KeyboardMapping | undefined;
+
   private readonly onButtonDown: (
     controller: ControllerKey,
     button: ButtonKey
@@ -34,7 +36,6 @@ export class KeyboardController {
     controller: ControllerKey,
     button: ButtonKey
   ) => void;
-  public keys: KeyboardMapping | undefined;
 
   constructor(options: KeyboardControllerOptions) {
     this.onButtonDown = options.onButtonDown;

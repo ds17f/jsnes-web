@@ -4,8 +4,8 @@ import "./Screen.css";
 import { getLogger } from "../../utils";
 const LOGGER = getLogger("Screen");
 
-const SCREEN_WIDTH: number = 256;
-const SCREEN_HEIGHT: number = 240;
+const SCREEN_WIDTH = 256;
+const SCREEN_HEIGHT = 240;
 
 interface ScreenProps {
   onGenerateFrame: () => void;
@@ -108,15 +108,15 @@ export class Screen extends Component<ScreenProps> {
   };
 
   fitInParent = () => {
-    let parent = this.canvas!.parentElement;
+    const parent = this.canvas!.parentElement;
     if (!parent) {
       LOGGER.info("Cannot fit in parent: Canvas doesn't have a parent Element");
       return;
     }
-    let parentWidth = parent.clientWidth;
-    let parentHeight = parent.clientHeight;
-    let parentRatio = parentWidth / parentHeight;
-    let desiredRatio = SCREEN_WIDTH / SCREEN_HEIGHT;
+    const parentWidth = parent.clientWidth;
+    const parentHeight = parent.clientHeight;
+    const parentRatio = parentWidth / parentHeight;
+    const desiredRatio = SCREEN_WIDTH / SCREEN_HEIGHT;
     LOGGER.debug({ parentWidth, parentHeight, parentRatio, desiredRatio });
 
     if (desiredRatio < parentRatio) {
@@ -145,10 +145,10 @@ export class Screen extends Component<ScreenProps> {
 
     // Make coordinates unscaled
     LOGGER.info("Translate screen click to canvas/emulator location");
-    let scale = SCREEN_WIDTH / parseFloat(this.canvas!.style.width);
-    let rect = this.canvas!.getBoundingClientRect();
-    let x = Math.round((e.clientX - rect.left) * scale);
-    let y = Math.round((e.clientY - rect.top) * scale);
+    const scale = SCREEN_WIDTH / parseFloat(this.canvas!.style.width);
+    const rect = this.canvas!.getBoundingClientRect();
+    const x = Math.round((e.clientX - rect.left) * scale);
+    const y = Math.round((e.clientY - rect.top) * scale);
     LOGGER.debug(`screenX: ${e.clientX}, screenY: ${e.clientY}`);
     LOGGER.debug(`canvasX: ${x}, canvasY: ${y}`);
 

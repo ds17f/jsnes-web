@@ -147,7 +147,7 @@ class RunPage extends Component<RunPageProps, RunPageState> {
               />
             ) : null}
 
-            {/* TODO: lift keyboard and gamepad state up */}
+            {/* TODO: lift keyboard and gamepad state up */}
             {this.state.controlsModalOpen && (
               <ControlsModal
                 isOpen={this.state.controlsModalOpen}
@@ -186,9 +186,15 @@ class RunPage extends Component<RunPageProps, RunPageState> {
     LOGGER.debug({ locationState: this.props.location.state });
 
     const { slug } = this.props.params;
-    // @ts-ignore state is type unknown
-    // TODO: When can we have a File in the state?
-    const file = this.props.location.state?.file as File;
+
+    let file;
+    if (
+      this.props.location.state &&
+      typeof this.props.location.state === "object" &&
+      "file" in this.props.location.state
+    ) {
+      file = (this.props.location.state as {file: File}).file;
+    }
 
     if (!slug && !file) {
       LOGGER.info("No slug and no file, so no rom");
@@ -267,7 +273,7 @@ class RunPage extends Component<RunPageProps, RunPageState> {
    * @param file
    */
   loadRomFromFile = (file: File) => {
-    let reader = new FileReader();
+    const reader = new FileReader();
     reader.readAsBinaryString(file);
     reader.onload = () => {
       this.currentRequest = null;
@@ -295,7 +301,9 @@ class RunPage extends Component<RunPageProps, RunPageState> {
   };
 
   layout = () => {
-    let navbarHeight = parseFloat(window.getComputedStyle(this.navbar!).height);
+    const navbarHeight = parseFloat(
+      window.getComputedStyle(this.navbar!).height
+    );
     this.screenContainer!.style.height = `${window.innerHeight -
       navbarHeight}px`;
     if (this.emulator) {
@@ -308,17 +316,22 @@ class RunPage extends Component<RunPageProps, RunPageState> {
   };
 }
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * HoC to add router params and location to component
  * @param Component
  */
 function withParams(Component: ComponentType<any>) {
-  return (props: ComponentProps<any>) => (
+  const wrappedComponent = (props: ComponentProps<any>) => (
     <Component {...props} params={useParams()} location={useLocation()} />
   );
+  wrappedComponent.displayName = Component.displayName;
+  return wrappedComponent;
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 // Add params and location to RunPage
 const RunPageWithParams = withParams(RunPage);
+
 // Export the version of RunPage with Params and Location
 export { RunPageWithParams as RunPage };
