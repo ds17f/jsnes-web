@@ -44,9 +44,6 @@ export class Emulator extends Component<EmulatorProps> {
         ref={(screen: Screen) => {
           this.screen = screen;
         }}
-        onGenerateFrame={() => {
-          this.nes!.frame();
-        }}
         onMouseDown={(x, y) => {
           this.nes!.zapperMove(x, y);
           this.nes!.zapperFireDown();
@@ -71,7 +68,7 @@ export class Emulator extends Component<EmulatorProps> {
     // make a dedicated logger to listen to status updates from the NES
     const nesLogger = getLogger("NES")
     this.nes = new NES({
-      onFrame: this.screen!.setBuffer,
+      onFrame: this.screen!.writeToFrameBuffer,
       onStatusUpdate: nesLogger.debug, // Assume these are debug level messages
       onAudioSample: this.speakers.writeSampleToBuffer,
       sampleRate: this.speakers.sampleRate
@@ -85,7 +82,7 @@ export class Emulator extends Component<EmulatorProps> {
     // so just cast them down and things should be fine
     this.frameTimer = new FrameTimer({
       onGenerateFrame: Raven.wrap(this.nes.frame) as () => void,
-      onWriteFrame: Raven.wrap(this.screen!.writeBuffer) as () => void
+      onWriteFrame: Raven.wrap(this.screen!.flushFrameBufferToCanvas) as () => void
     });
 
     // Set up gamepad and keyboard
